@@ -55,7 +55,6 @@ async def list_users(message: Message) -> None:
     await message.answer(str(settings.users))
 
 
-
 @dp.message(Command("history"))
 async def show_history(message: Message) -> None:
     if message.from_user:
@@ -66,8 +65,12 @@ async def show_history(message: Message) -> None:
 
 
 @dp.message()
-async def gigachat_handler(message: Message) -> None:
+async def gigachat_handler(message: Message, state: FSMContext) -> None:
     if not message.text: return
+    if message.from_user:
+        id = message.from_user.full_name
+        if id not in settings.users:
+            await start_handler(message, state)
 
     history = []
     if message.from_user:
@@ -75,7 +78,7 @@ async def gigachat_handler(message: Message) -> None:
 
     response = use(
         access_token=settings.gigachat_token,
-        model="GigaChat",
+        model=settings.model,
         message_history=history,
         proompt=message.text
     )
@@ -83,15 +86,12 @@ async def gigachat_handler(message: Message) -> None:
     await message.answer(response)
 
 
-
 async def main() -> None:
-    # Initialize Bot instance with default bot properties which will be passed to all API calls
     bot = Bot(token=settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-
-    # And the run events dispatching
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
+
