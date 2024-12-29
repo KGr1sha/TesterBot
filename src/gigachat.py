@@ -73,7 +73,6 @@ def use(access_token: str, model: str, message_history: list, proompt: str) -> s
     return response_txt["content"]
 
 
-
 if __name__ == '__main__':
     token = get_access_token()
     models = get_available_models(token)
@@ -85,5 +84,4 @@ if __name__ == '__main__':
         "Привет, расскажи, что ты можешь."
     )
     print(response)
-
 
