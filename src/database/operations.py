@@ -15,14 +15,12 @@ async def set_user(session: AsyncSession, tg_id: int, username: str, education: 
             new_user = User(id=tg_id, username=username, education=education)
             session.add(new_user)
             await session.commit()
-            print(f"registered user with id: {id}")
             return None
         else:
-            print(f"user with id: {id} is already present")
             return user
 
     except SQLAlchemyError as e:
-        print(e)
+        print(f"ERROR: {e}")
         await session.rollback()
 
 
@@ -33,7 +31,7 @@ async def get_user(session: AsyncSession, tg_id: int) -> Optional[User]:
         return user
 
     except SQLAlchemyError as e:
-        print(e)
+        print(f"ERROR: {e}")
         await session.rollback()
 
 
@@ -45,7 +43,7 @@ async def get_users(session: AsyncSession):
         return users
 
     except SQLAlchemyError as e:
-        print(e)
+        print(f"ERROR: {e}")
         await session.rollback()
 
 
@@ -55,7 +53,6 @@ async def delete_users(session: AsyncSession) -> int:
         result: Result = await session.execute(select(User))
         users = result.scalars().all()
         cnt = len(users)
-        print(f"FOUND {cnt} USERS")
         await session.execute(delete(User))
         await session.commit()
         return cnt
