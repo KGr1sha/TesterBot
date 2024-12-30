@@ -1,13 +1,14 @@
 import asyncio
 import logging
 import sys
+from dotenv import load_dotenv
+from os import getenv
 
 from aiogram import Bot, Dispatcher 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommandScopeDefault,  BotCommand
 
-from bot_settings import get_bot_token
 from routers import start_router, general_router
 from database.setup import create_tables
 
@@ -47,6 +48,13 @@ async def set_commands(bot: Bot) -> None:
         BotCommand(command="delusers", description="Удалить всех пользователей"),
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
+
+def get_bot_token() -> str:
+    load_dotenv()
+    bt = getenv("BOT_TOKEN")
+    if not bt:
+        raise Exception("Failed to get bot token from env")
+    return bt
 
 async def main() -> None:
     bot_token = get_bot_token()

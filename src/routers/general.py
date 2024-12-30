@@ -1,7 +1,6 @@
 from aiogram import Router 
 from aiogram.filters import Command
 from aiogram.types import Message
-from bot_settings import settings
 
 from database.operations import delete_users, get_users 
 
@@ -26,7 +25,7 @@ async def show_history(message: Message) -> None:
     if message.from_user:
         id = message.from_user.full_name
         await message.answer(
-            str(settings.message_history[id])
+            "hi"
         )
 
 @general_router.message(Command("delusers"))
