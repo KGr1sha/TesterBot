@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from messages import messages
 from states import UserForm
-from bot_settings import settings
+from database.operations import set_user, get_user
 
 start_router = Router()
 users = {}
@@ -17,6 +17,12 @@ async def send_messages(message: Message, messages: list) -> None:
 
 @start_router.message(CommandStart())
 async def start_handler(message: Message, state: FSMContext) -> None:
+    if not message.from_user: return
+    user = await get_user(tg_id=message.from_user.id)
+    if user:
+        await message.answer("You are already registered")
+        return
+
     await state.set_state(UserForm.name)
     await send_messages(message, messages["start"])
 
@@ -33,10 +39,10 @@ async def process_education(message: Message, state: FSMContext) -> None:
     await state.update_data(education=message.text)
     data = await state.get_data()
     if message.from_user:
-        id = message.from_user.full_name
-        settings.users[id] = {
-            "name": data["name"],
-            "education": data["education"],
-        }
+        user = await set_user(
+            tg_id=message.from_user.id,
+            username=data["name"],
+            education=data["education"]
+        )
     await state.clear()
 

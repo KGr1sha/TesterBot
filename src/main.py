@@ -9,6 +9,7 @@ from aiogram.types import BotCommandScopeDefault,  BotCommand
 
 from bot_settings import get_bot_token
 from routers import start_router, general_router
+from database.setup import create_tables
 
 
 dp = Dispatcher()
@@ -42,14 +43,16 @@ async def set_commands(bot: Bot) -> None:
     commands = [
         BotCommand(command="start", description="Старт"),
         BotCommand(command="users", description="Список пользователей"),
-        BotCommand(command="history", description="История сообщений")
+        BotCommand(command="history", description="История сообщений"),
+        BotCommand(command="delusers", description="Удалить всех пользователей"),
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 async def main() -> None:
     bot_token = get_bot_token()
     bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    await set_commands(bot)
+
+    asyncio.gather(create_tables(), set_commands(bot))
     await dp.start_polling(bot)
 
 
