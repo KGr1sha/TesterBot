@@ -48,7 +48,7 @@ async def get_users(session: AsyncSession):
 
 
 @connection
-async def delete_users(session: AsyncSession) -> int:
+async def delete_all_users(session: AsyncSession) -> int:
     try:
         result: Result = await session.execute(select(User))
         users = result.scalars().all()

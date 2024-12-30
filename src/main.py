@@ -9,7 +9,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommandScopeDefault,  BotCommand
 
-from routers import start_router, general_router
+from routers import start_router, general_router, chat_router, ChatScene
 from database.setup import create_tables
 
 
@@ -17,28 +17,9 @@ dp = Dispatcher()
 dp.include_router(start_router)
 dp.include_router(general_router)
 
+def create_dispatcher() -> Dispatcher:
+    return Dispatcher()
 
-#@dp.message()
-#async def gigachat_handler(message: Message, state: FSMContext) -> None:
-#    if not message.text: return
-#    if message.from_user:
-#        id = message.from_user.full_name
-#        if id not in settings.users:
-#            raise Exception(f"USER NOT REGISTERED: {id}")
-#            #await start_handler(message, state)
-#
-#    history = []
-#    if message.from_user:
-#        history = settings.message_history[message.from_user.full_name]
-#
-#    response = use(
-#        access_token=settings.gigachat_token,
-#        model=settings.model,
-#        message_history=history,
-#        proompt=message.text
-#    )
-#
-#    await message.answer(response)
 
 async def set_commands(bot: Bot) -> None:
     commands = [
