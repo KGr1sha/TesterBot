@@ -1,11 +1,12 @@
-import requests
+import asyncio
 from dotenv import load_dotenv
 from os import getenv
 import uuid
 import json
+from aiohttp import ClientSession
 
 
-def get_access_token() -> str:
+async def get_access_token() -> str:
     rq_uid = str(uuid.uuid4())
     load_dotenv()
     AUTH_KEY = getenv("GIGACHAT_AUTH_KEY")
@@ -21,13 +22,15 @@ def get_access_token() -> str:
       'RqUID': rq_uid,
       'Authorization': f'Basic {AUTH_KEY}'
     }
-    response = requests.request("POST", auth_url, headers=headers, data=payload, verify=False)
-    if response.status_code != 200:
-        raise Exception(f"Bad response status code: {response.status_code}\n{response.text}")
-    return response.json()['access_token']
+    async with ClientSession() as session:
+        async with session.post(auth_url, headers=headers, data=payload, ssl=False) as resp:
+            if resp.status != 200:
+                raise Exception(f"Bad response status code: {resp.status}\n{resp.text}")
+            json = await resp.json()
+            return json["access_token"]
 
 
-def get_available_models(access_key: str) -> list:
+async def get_available_models(access_key: str) -> list:
     url = "https://gigachat.devices.sberbank.ru/api/v1/models"
     payload={}
     headers = {
@@ -35,13 +38,15 @@ def get_available_models(access_key: str) -> list:
     'Authorization': f'Bearer {access_key}'
     }
 
-    response = requests.request("GET", url, headers=headers, data=payload, verify=False)
-    if response.status_code != 200:
-        raise Exception(f"Bad response status code: {response.status_code}\n{response.text}")
-    return [model['id'] for model in response.json()['data']]
+    async with ClientSession() as session:
+        async with session.get(url, headers=headers, data=payload, ssl=False) as response:
+            if response.status != 200:
+                raise Exception(f"Bad response status code: {response.status}\n{response.text}")
+            json = await response.json()
+            return [model['id'] for model in json['data']]
 
 
-def use(access_token: str, model: str, message_history: list, proompt: str) -> str:
+async def use(access_token: str, model: str, message_history: list, proompt: str) -> str:
     message_history.append({
         "role": "user",
         "content": proompt,
@@ -64,21 +69,24 @@ def use(access_token: str, model: str, message_history: list, proompt: str) -> s
         'Authorization': f'Bearer {access_token}'
     }
 
-    response = requests.request("POST", url, headers=headers, data=payload, verify=False)
-    if response.status_code != 200:
-        raise Exception(f"Bad response status code: {response.status_code}\n{response.text}")
+    async with ClientSession() as session:
+        async with session.post(url, headers=headers, data=payload, ssl=False) as response:
+            if response.status != 200:
+                raise Exception(f"Bad response status code: {response.status}\n{response.text}")
 
-    response_txt = response.json()["choices"][0]["message"]
-    message_history.append(response_txt)
-    return response_txt["content"]
+            response_txt = (await response.json())["choices"][0]["message"]
+            message_history.append(response_txt)
+            return response_txt["content"]
 
 
 
-if __name__ == '__main__':
-    token = get_access_token()
-    models = get_available_models(token)
+async def main() -> None:
+    token = await get_access_token()
+    models = await get_available_models(token)
+    print(models)
+
     message_history = []
-    response = use(
+    response = await use(
         token,
         models[0],
         message_history,
@@ -86,4 +94,7 @@ if __name__ == '__main__':
     )
     print(response)
 
+
+if __name__ == '__main__':
+    asyncio.run(main())
 
