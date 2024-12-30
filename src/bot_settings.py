@@ -1,6 +1,14 @@
 from dotenv import load_dotenv
 from os import getenv
 
+def get_bot_token() -> str:
+    load_dotenv()
+    bt = getenv("BOT_TOKEN")
+    if not bt:
+        raise Exception("Failed to get bot token from env")
+    return bt
+
+
 class BotSettings:
     bot_token: str
     gigachat_token: str

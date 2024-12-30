@@ -2,13 +2,12 @@ import asyncio
 import logging
 import sys
 
-from aiogram import Bot, Dispatcher, Router
+from aiogram import Bot, Dispatcher 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.types import Message
+from aiogram.types import BotCommandScopeDefault,  BotCommand
 
-from gigachat import use, get_access_token
-from bot_settings import settings, init_settings
+from bot_settings import get_bot_token
 from routers import start_router, general_router
 
 
@@ -39,11 +38,18 @@ dp.include_router(general_router)
 #
 #    await message.answer(response)
 
+async def set_commands(bot: Bot) -> None:
+    commands = [
+        BotCommand(command="start", description="Старт"),
+        BotCommand(command="users", description="Список пользователей"),
+        BotCommand(command="history", description="История сообщений")
+    ]
+    await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 async def main() -> None:
-    gigatoken = await get_access_token()
-    init_settings(gigatoken, "GigaChat")
-    bot = Bot(token=settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    bot_token = get_bot_token()
+    bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    await set_commands(bot)
     await dp.start_polling(bot)
 
 
