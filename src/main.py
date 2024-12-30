@@ -6,13 +6,11 @@ from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
 
-from gigachat import use
-from bot_settings import BotSettings
+from gigachat import use, get_access_token
+from bot_settings import settings, init_settings
 from routers import start_router, general_router
 
-settings = BotSettings()
 
 dp = Dispatcher()
 dp.include_router(start_router)
@@ -43,6 +41,8 @@ dp.include_router(general_router)
 
 
 async def main() -> None:
+    gigatoken = await get_access_token()
+    init_settings(gigatoken, "GigaChat")
     bot = Bot(token=settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     await dp.start_polling(bot)
 

@@ -4,7 +4,8 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from messages import messages
-from forms import UserForm
+from states import UserForm
+from bot_settings import settings
 
 start_router = Router()
 users = {}
@@ -33,7 +34,7 @@ async def process_education(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     if message.from_user:
         id = message.from_user.full_name
-        users[id] = {
+        settings.users[id] = {
             "name": data["name"],
             "education": data["education"],
         }
