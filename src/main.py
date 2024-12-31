@@ -25,8 +25,8 @@ def create_dispatcher() -> Dispatcher:
         events_isolation=SimpleEventIsolation()
     )
     dispatcher.include_router(start_router)
-    dispatcher.include_router(general_router)
     dispatcher.include_router(chat_router)
+    dispatcher.include_router(general_router)
 
     scene_registry = SceneRegistry(dispatcher)
     scene_registry.add(ChatScene)
@@ -38,7 +38,6 @@ async def set_commands(bot: Bot) -> None:
         BotCommand(command="start", description="Старт"),
         BotCommand(command="users", description="Список пользователей"),
         BotCommand(command="chat", description="Гигачат"),
-        BotCommand(command="history", description="История сообщений"),
         BotCommand(command="delusers", description="Удалить всех пользователей"),
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
