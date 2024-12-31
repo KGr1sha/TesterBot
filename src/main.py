@@ -11,11 +11,13 @@ from aiogram.enums import ParseMode
 from aiogram.types import BotCommandScopeDefault,  BotCommand
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 
-from gigachat import get_access_token
-from routers import start_router, general_router, chat_router, ChatScene
+from routers import (
+    start_router,
+    general_router,
+    chat_router,
+    ChatScene,
+)
 from database.setup import create_tables
-
-gigachat_access_token: str
 
 
 def create_dispatcher() -> Dispatcher:
@@ -35,6 +37,7 @@ async def set_commands(bot: Bot) -> None:
     commands = [
         BotCommand(command="start", description="Старт"),
         BotCommand(command="users", description="Список пользователей"),
+        BotCommand(command="chat", description="Гигачат"),
         BotCommand(command="history", description="История сообщений"),
         BotCommand(command="delusers", description="Удалить всех пользователей"),
     ]
@@ -52,7 +55,6 @@ def get_bot_token() -> str:
 async def main() -> None:
     dp = create_dispatcher()
     bot_token = get_bot_token()
-    gigachat_access_token = await get_access_token()
 
     bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 

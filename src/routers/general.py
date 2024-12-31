@@ -19,15 +19,6 @@ async def list_users(message: Message) -> None:
     await message.answer(response)
 
 
-
-@general_router.message(Command("history"))
-async def show_history(message: Message) -> None:
-    if message.from_user:
-        id = message.from_user.full_name
-        await message.answer(
-            "not implemented yet, sorry"
-        )
-
 @general_router.message(Command("delusers"))
 async def delusers_handler(message: Message) -> None:
     deleted = await delete_all_users()

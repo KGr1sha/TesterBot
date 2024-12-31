@@ -46,15 +46,15 @@ async def get_available_models(access_key: str) -> list:
             return [model['id'] for model in json['data']]
 
 
-async def use(access_token: str, model: str, message_history: list, proompt: str) -> str:
-    message_history.append({
+async def use(access_token: str, model: str, message_history: dict, user_id: int, proompt: str) -> str:
+    message_history[user_id].append({
         "role": "user",
         "content": proompt,
     })
     url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
     payload = json.dumps({
         "model": model,
-        "messages": message_history,
+        "messages": message_history[user_id],
         "temperature": 0.5,
         "top_p": 0.1, #Контроль разнообразия ответов
         "n": 1, #Кол-во возвращаемых ответов
@@ -75,7 +75,7 @@ async def use(access_token: str, model: str, message_history: list, proompt: str
                 raise Exception(f"Bad response status code: {response.status}\n{response.text}")
 
             response_txt = (await response.json())["choices"][0]["message"]
-            message_history.append(response_txt)
+            message_history[user_id].append(response_txt)
             return response_txt["content"]
 
 
@@ -85,11 +85,12 @@ async def main() -> None:
     models = await get_available_models(token)
     print(models)
 
-    message_history = []
+    message_history = {}
     response = await use(
         token,
         models[0],
         message_history,
+        0,
         "Привет, расскажи, что ты можешь."
     )
     print(response)
