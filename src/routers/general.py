@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from database.operations import delete_users, get_users 
+from database.operations import delete_all_users, get_users 
 
 general_router = Router()
 
@@ -25,10 +25,10 @@ async def show_history(message: Message) -> None:
     if message.from_user:
         id = message.from_user.full_name
         await message.answer(
-            "hi"
+            "not implemented yet, sorry"
         )
 
 @general_router.message(Command("delusers"))
 async def delusers_handler(message: Message) -> None:
-    deleted = await delete_users()
+    deleted = await delete_all_users()
     await message.answer(f"deleted {deleted} users")

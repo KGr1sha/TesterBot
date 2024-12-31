@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+from aiogram.fsm.scene import SceneRegistry
 from dotenv import load_dotenv
 from os import getenv
 
@@ -8,37 +9,27 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommandScopeDefault,  BotCommand
+from aiogram.fsm.storage.memory import SimpleEventIsolation
 
-from routers import start_router, general_router
+from gigachat import get_access_token
+from routers import start_router, general_router, chat_router, ChatScene
 from database.setup import create_tables
 
-
-dp = Dispatcher()
-dp.include_router(start_router)
-dp.include_router(general_router)
+gigachat_access_token: str
 
 
-#@dp.message()
-#async def gigachat_handler(message: Message, state: FSMContext) -> None:
-#    if not message.text: return
-#    if message.from_user:
-#        id = message.from_user.full_name
-#        if id not in settings.users:
-#            raise Exception(f"USER NOT REGISTERED: {id}")
-#            #await start_handler(message, state)
-#
-#    history = []
-#    if message.from_user:
-#        history = settings.message_history[message.from_user.full_name]
-#
-#    response = use(
-#        access_token=settings.gigachat_token,
-#        model=settings.model,
-#        message_history=history,
-#        proompt=message.text
-#    )
-#
-#    await message.answer(response)
+def create_dispatcher() -> Dispatcher:
+    dispatcher = Dispatcher(
+        events_isolation=SimpleEventIsolation()
+    )
+    dispatcher.include_router(start_router)
+    dispatcher.include_router(general_router)
+    dispatcher.include_router(chat_router)
+
+    scene_registry = SceneRegistry(dispatcher)
+    scene_registry.add(ChatScene)
+    return dispatcher
+
 
 async def set_commands(bot: Bot) -> None:
     commands = [
@@ -49,6 +40,7 @@ async def set_commands(bot: Bot) -> None:
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
+
 def get_bot_token() -> str:
     load_dotenv()
     bt = getenv("BOT_TOKEN")
@@ -56,8 +48,12 @@ def get_bot_token() -> str:
         raise Exception("Failed to get bot token from env")
     return bt
 
+
 async def main() -> None:
+    dp = create_dispatcher()
     bot_token = get_bot_token()
+    gigachat_access_token = await get_access_token()
+
     bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
     asyncio.gather(create_tables(), set_commands(bot))
