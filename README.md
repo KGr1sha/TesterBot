@@ -4,5 +4,6 @@
 ### TODO
 - [ ] test creating prooompts
 - [ ] test creation mode
-- [ ] exam proompts
-- [ ] exam mode
+- [ ] saving tests to db
+- [ ] training proompts
+- [ ] training mode
