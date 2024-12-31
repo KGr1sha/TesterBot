@@ -2,7 +2,7 @@
 ### [bot](https://t.me/testsproject_bot)
 
 ### TODO
-[ ] test creating prooompts
-[ ] test creation mode
-[ ] exam proompts
-[ ] exam mode
+- [ ] test creating prooompts
+- [ ] test creation mode
+- [ ] exam proompts
+- [ ] exam mode
