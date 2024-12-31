@@ -1,6 +1,5 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.scene import Scene, on
 
