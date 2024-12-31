@@ -24,3 +24,4 @@ class Substate(Filter):
 
     async def __call__(self, message: Message, state: FSMContext) -> bool:
         return (await state.get_value(self.substate_key)) == self.substate
+

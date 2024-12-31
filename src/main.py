@@ -32,8 +32,8 @@ def create_dispatcher() -> Dispatcher:
     dispatcher.include_router(test_router)
 
     scene_registry = SceneRegistry(dispatcher)
-    scene_registry.add(ChatScene, router=chat_router)
-    scene_registry.add(CreateTestScene, router=test_router)
+    scene_registry.add(ChatScene)
+    scene_registry.add(CreateTestScene)
     return dispatcher
 
 
@@ -43,7 +43,8 @@ async def set_commands(bot: Bot) -> None:
         BotCommand(command="users", description="Список пользователей"),
         BotCommand(command="chat", description="Гигачат"),
         BotCommand(command="delusers", description="Удалить всех пользователей"),
-        BotCommand(command="test", description="Тест?"),
+        BotCommand(command="create_test", description="Тест?"),
+        BotCommand(command="tests", description="Список тестов"),
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 

@@ -1,4 +1,6 @@
-from aiogram import Router, F
+from dataclasses import dataclass
+
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.scene import Scene, on
@@ -6,9 +8,13 @@ from aiogram.fsm.context import FSMContext
 
 from gigachat import get_access_token, use 
 from states import TestCreation, Substate
+from database.operations import add_test
+from database.models import TestStruct
 
-history = {}
+test_router = Router()
+
 access_token: str
+
 
 
 class CreateTestScene(Scene, state="create_test"):
@@ -32,10 +38,17 @@ class CreateTestScene(Scene, state="create_test"):
         await state.update_data(creation_state=TestCreation.noq)
         await message.answer("Сколько вопросов?")
 
-
+    
     @on.message(Substate("creation_state", TestCreation.noq))
     async def handle_noq(self, message: Message, state: FSMContext) -> None:
         await state.update_data(noq=message.text)
+        await state.update_data(creation_state=TestCreation.qtype)
+        await message.answer("Тип вопросов?")
+
+
+    @on.message(Substate("creation_state", TestCreation.qtype))
+    async def handle_qtype(self, message: Message, state: FSMContext) -> None:
+        await state.update_data(qtype=message.text)
         await state.update_data(creation_state=TestCreation.difficulty)
         await message.answer("Сложность?")
 
@@ -51,11 +64,25 @@ class CreateTestScene(Scene, state="create_test"):
     async def handle_time(self, message: Message, state: FSMContext) -> None:
         await state.update_data(time=message.text)
         data = await state.get_data()
-        print(str(data))
+        t = TestStruct(
+            data["subject"],
+            data["theme"],
+            data["noq"],
+            data["qtype"],
+            data["difficulty"],
+            data["time"],
+        )
+        if not message.from_user:
+            return
+
+        added = await add_test(message.from_user.id, t)
+        if added:
+            await message.answer("test added")
+        else:
+            await message.answer("user not present")
+
         await state.clear()
-        await message.answer("GOOD")
 
 
-test_router = Router()
-test_router.message.register(CreateTestScene.as_handler(), Command("test"))
+test_router.message.register(CreateTestScene.as_handler(), Command("create_test"))
 
