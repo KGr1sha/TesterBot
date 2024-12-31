@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @connection
-async def set_user(session: AsyncSession, tg_id: int, username: str, education: str) -> Optional[User]:
+async def set_user(tg_id: int, username: str, education: str, session: AsyncSession=AsyncSession()) -> Optional[User]:
     try:
         user = await session.scalar(select(User).filter_by(id=tg_id))
 
@@ -25,7 +25,7 @@ async def set_user(session: AsyncSession, tg_id: int, username: str, education: 
 
 
 @connection
-async def get_user(session: AsyncSession, tg_id: int) -> Optional[User]:
+async def get_user(tg_id: int, session: AsyncSession=AsyncSession()) -> Optional[User]:
     try:
         user = await session.scalar(select(User).filter_by(id=tg_id))
         return user
@@ -36,7 +36,7 @@ async def get_user(session: AsyncSession, tg_id: int) -> Optional[User]:
 
 
 @connection
-async def get_users(session: AsyncSession):
+async def get_users(session: AsyncSession=AsyncSession()):
     try:
         result: Result = await session.execute(select(User))
         users = result.scalars().all()
@@ -48,7 +48,7 @@ async def get_users(session: AsyncSession):
 
 
 @connection
-async def delete_all_users(session: AsyncSession) -> int:
+async def delete_all_users(session: AsyncSession=AsyncSession()) -> int:
     try:
         result: Result = await session.execute(select(User))
         users = result.scalars().all()
