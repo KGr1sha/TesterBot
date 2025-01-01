@@ -3,9 +3,11 @@ from aiogram.filters import Filter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+
 class UserForm(StatesGroup):
     name = State()
     education = State()
+
 
 class TestCreation(StatesGroup):
     subject = State()

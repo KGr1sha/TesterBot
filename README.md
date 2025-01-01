@@ -1,9 +1,17 @@
 # Бот для составления вопросов и тестов!
 ### [bot](https://t.me/testsproject_bot)
 
-### TODO
-- [ ] test creating prooompts
-- [ ] test creation mode
-- [ ] saving tests to db
+## TODO
+---
+### 31.12
+- [x] test creating prooompts
+- [x] test creation mode
+- [x] saving tests to db
+### 01.01
+- [ ]
+- [ ]
+- [ ]
+
+
 - [ ] training proompts
 - [ ] training mode

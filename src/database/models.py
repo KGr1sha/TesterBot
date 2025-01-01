@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from sqlalchemy import BigInteger, Integer, String, ForeignKey
+from sqlalchemy import BigInteger, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -43,6 +43,7 @@ class Test(Base):
     question_type: Mapped[str] = mapped_column(String, nullable=True)
     difficulty: Mapped[str] = mapped_column(String, nullable=True)
     time: Mapped[str] = mapped_column(String, nullable=True)
+    content_text: Mapped[str] = mapped_column(Text, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="tests")
 

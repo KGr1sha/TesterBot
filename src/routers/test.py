@@ -1,20 +1,21 @@
-from dataclasses import dataclass
+from time import time
 
 from aiogram import Router
+from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
-from gigachat import get_access_token, use 
+from gigachat import get_access_token 
 from states import TestCreation, Substate
 from database.operations import add_test
 from database.models import TestStruct
+from testgen import ProomptGenerator
 
 test_router = Router()
 
 access_token: str
-
 
 
 class CreateTestScene(Scene, state="create_test"):
@@ -62,6 +63,8 @@ class CreateTestScene(Scene, state="create_test"):
 
     @on.message(Substate("creation_state", TestCreation.time))
     async def handle_time(self, message: Message, state: FSMContext) -> None:
+        if not message.from_user: return
+
         await state.update_data(time=message.text)
         data = await state.get_data()
         t = TestStruct(
@@ -72,10 +75,17 @@ class CreateTestScene(Scene, state="create_test"):
             data["difficulty"],
             data["time"],
         )
-        if not message.from_user:
-            return
+        await message.answer("генерация теста...")
+        gigatoken = await get_access_token()
+        generator = ProomptGenerator(gigatoken)
+        start = time()
+        test = await generator.generate_test(t)
+        end = time()
+        await message.answer(f"test generated. took {end - start} seconds")
+        await message.answer(test[0])
+        await message.answer(f"original proompt:\n{test[1]}")
 
-        added = await add_test(message.from_user.id, t)
+        added = await add_test(message.from_user.id, t, test[0])
         if added:
             await message.answer("test added")
         else:

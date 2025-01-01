@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.scene import Scene, on
@@ -49,12 +50,11 @@ class ChatScene(Scene, state="chat"):
         response = await use(
             access_token=access_token,
             model="GigaChat",
-            message_history=history,
-            user_id=message.from_user.id,
+            message_history=history[message.from_user.id],
             proompt=message.text
         )
 
-        await message.answer(response)
+        await message.answer(response, parse_mode=ParseMode.MARKDOWN)
 
 
 chat_router = Router()

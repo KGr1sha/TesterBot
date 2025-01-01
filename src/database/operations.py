@@ -65,21 +65,22 @@ async def delete_all_users(session: AsyncSession=AsyncSession()) -> int:
 
 
 @connection
-async def add_test(user_id: int, test: TestStruct, session: AsyncSession=AsyncSession()) -> Optional[Test]:
+async def add_test(user_id: int, test_settings: TestStruct, test_content: str, session: AsyncSession=AsyncSession()) -> Optional[Test]:
     try:
         user = await get_user(user_id)
 
         if not user:
-            raise Exception("ERROR: USER IS NOT PRESENT, CAN'T ADD TEST")
+            return None
 
         new_test = Test(
             user_id=user_id,
-            subject=test.subject,
-            theme=test.theme,
-            number_of_questions=test.number_of_questions,
-            question_type=test.question_type,
-            difficulty=test.difficulty,
-            time=test.time
+            subject=test_settings.subject,
+            theme=test_settings.theme,
+            number_of_questions=test_settings.number_of_questions,
+            question_type=test_settings.question_type,
+            difficulty=test_settings.difficulty,
+            time=test_settings.time,
+            content_text=test_content
         )
 
         session.add(new_test)
@@ -91,8 +92,20 @@ async def add_test(user_id: int, test: TestStruct, session: AsyncSession=AsyncSe
         await session.rollback()
 
 
+
 @connection
-async def get_tests(user_id: int, session: AsyncSession=AsyncSession()) -> Optional[list[TestStruct]]:
+async def get_test(id: int, session: AsyncSession=AsyncSession()) -> Optional[Test]:
+    try:
+        test = await session.scalar(select(Test).filter_by(id=id))
+        return test
+
+    except SQLAlchemyError as e:
+        print(f"ERROR: {e}")
+        await session.rollback()
+
+
+@connection
+async def get_tests(user_id: int, session: AsyncSession=AsyncSession()) -> Optional[list]:
     try:
         result = await session.execute(select(Test).filter_by(user_id=user_id))
         tests = result.scalars().all()
@@ -101,16 +114,20 @@ async def get_tests(user_id: int, session: AsyncSession=AsyncSession()) -> Optio
             print(f"No tests for user {user_id}")
             return list()
 
-        test_list = [
-            TestStruct(
+        test_list = [{
+            "id": test.id,
+            "settings": TestStruct(
                 subject = test.subject,
                 theme=test.theme,
                 number_of_questions=test.number_of_questions,
                 question_type=test.question_type,
                 difficulty=test.difficulty,
                 time=test.time,
-            ) for test in tests
-        ]
+            ),
+            "content": test.content_text,
+            "created_at": test.created_at,
+        } for test in tests]
+        
 
         return test_list
 
