@@ -1,12 +1,8 @@
-from gigachat import use
 from proompts import get_proompt
 from database.models import TestStruct
 
 class ProomptGenerator():
-    def __init__(self, gigachat_token: str):
-        self.token=gigachat_token
-
-    async def generate_test(self, test_data: TestStruct) -> tuple[str, str]:
+    def create_test(self, test_data: TestStruct) -> str:
         proompt = get_proompt("create_test").format(
             subject=test_data.subject,
             theme=test_data.theme,
@@ -16,27 +12,13 @@ class ProomptGenerator():
             time=test_data.time
         )
 
-        response = await use(
-            self.token,
-            model="GigaChat",
-            message_history=[],
-            proompt=proompt
-        )
-
-        return response, proompt
+        return proompt
 
 
-    async def take_test(self, test_text: str) -> tuple[str, str]:
+    def take_test(self, test_text: str) -> str:
         proompt = get_proompt("take_test").format(
             test_content=test_text
         )
 
-        response = await use(
-            access_token=self.token,
-            model="GigaChat",
-            message_history=[],
-            proompt=proompt 
-        )
-
-        return response, proompt
+        return proompt
 

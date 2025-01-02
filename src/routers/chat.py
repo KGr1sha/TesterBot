@@ -4,16 +4,13 @@ from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.scene import Scene, on
 
-from gigachat import get_access_token, use 
+from llm import Gigachat 
 
 history = {}
-access_token: str
 
 class ChatScene(Scene, state="chat"):
     @on.message.enter()
     async def on_enter(self, message: Message) -> None:
-        global access_token
-        access_token = await get_access_token()
         if message.from_user:
             history[message.from_user.id] = list()
 
@@ -47,10 +44,12 @@ class ChatScene(Scene, state="chat"):
     async def handle_message(self, message: Message) -> None:
         if not message.text or not message.from_user: return
 
-        response = await use(
-            access_token=access_token,
+        chat = Gigachat()
+        await chat.init_token()
+
+        response = await chat.use(
             model="GigaChat",
-            message_history=history[message.from_user.id],
+            history=history[message.from_user.id],
             proompt=message.text
         )
 
@@ -59,3 +58,4 @@ class ChatScene(Scene, state="chat"):
 
 chat_router = Router()
 chat_router.message.register(ChatScene.as_handler(), Command("chat"))
+

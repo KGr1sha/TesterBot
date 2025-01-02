@@ -12,6 +12,7 @@ class UserForm(StatesGroup):
 class TestingState(StatesGroup):
     selecting_delete = State()
     selecting_take = State()
+    taking_test = State()
 
 
 class TestCreation(StatesGroup):

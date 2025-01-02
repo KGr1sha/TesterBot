@@ -11,7 +11,7 @@ from aiogram.types import (Message,
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
-from gigachat import get_access_token 
+from llm import Gigachat
 from states import TestCreation, Substate, TestingState
 from database.operations import add_test, delete_test, get_test 
 from database.models import TestStruct
@@ -81,16 +81,23 @@ class CreateTestScene(Scene, state="create_test"):
             data["time"],
         )
         await message.answer("генерация теста...")
-        gigatoken = await get_access_token()
-        generator = ProomptGenerator(gigatoken)
+        chat = Gigachat()
+        await chat.init_token()
+        generator = ProomptGenerator()
+
+        proompt = generator.create_test(t)
         start = time()
-        test = await generator.generate_test(t)
+        test = await chat.use(
+            model="GigaChat",
+            history=[],
+            proompt=proompt
+        )
         end = time()
         await message.answer(f"test generated. took {end - start} seconds")
-        await message.answer(test[0])
-        await message.answer(f"original proompt:\n{test[1]}")
+        await message.answer(test)
+        await message.answer(f"original proompt:\n{proompt}")
 
-        added = await add_test(message.from_user.id, t, test[0])
+        added = await add_test(message.from_user.id, t, test)
         if added:
             await message.answer("test added")
         else:
@@ -109,16 +116,41 @@ class TestingScene(Scene, state="testing"):
             query.answer("error")
             return
 
+        chat = Gigachat()
+        await chat.init_token()
+        generator = ProomptGenerator()
 
-        generator = ProomptGenerator(await get_access_token())
+        if query.from_user.id not in message_history.keys():
+            message_history[query.from_user.id] = list()
+
+        proompt = generator.take_test(test.content_text)
         start = time()
-        result = await generator.take_test(test.content_text)
+        response = await chat.use(
+            model="GigaChat",
+            history=message_history[query.from_user.id],
+            proompt=proompt
+        )
         end = time()
 
         await query.message.edit_text(
-            result[0] + f"\n\ntook {end - start} seconds\n\n"\
-            + f"original prooompt:\n{result[1]}"
+            response + f"\n\ntook {end - start} seconds\n\n"\
+            + f"original prooompt:\n{proompt}"
         )
+        await state.update_data(substate=TestingState.taking_test)
+
+    @on.message(Substate("substate", TestingState.taking_test))
+    async def handle_take_state(self, message: Message, state: FSMContext) -> None:
+        if not message.from_user or not message.text: return
+
+        chat = Gigachat()
+        await chat.init_token()
+
+        response = await chat.use(
+            model="GigaChat",
+            history=message_history[message.from_user.id],
+            proompt=message.text
+        )
+        await message.answer(response)
 
 
 class DeletingTestScene(Scene, state="deleting_test"):
