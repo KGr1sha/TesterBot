@@ -60,15 +60,3 @@ async def list_tests(message: Message) -> None:
     builder.adjust(1, True)
     await message.answer("Тесты:", reply_markup=builder.as_markup())
 
-
-#@general_router.callback_query()
-#async def handle_test_selection(query: CallbackQuery, state: FSMContext) -> None:
-#    if not query.data: return
-#    test_id = int(query.data)
-#    test = await get_test(test_id)
-#    if not test:
-#        query.answer("error")
-#        return
-#
-#    await query.message.edit_text(test.content_text)
-#    

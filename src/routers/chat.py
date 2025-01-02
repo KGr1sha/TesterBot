@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.scene import Scene, on
 
-from llm import Gigachat 
+from setup import llm_client
 
 history = {}
 
@@ -44,11 +44,7 @@ class ChatScene(Scene, state="chat"):
     async def handle_message(self, message: Message) -> None:
         if not message.text or not message.from_user: return
 
-        chat = Gigachat()
-        await chat.init_token()
-
-        response = await chat.use(
-            model="GigaChat",
+        response = await llm_client.use(
             history=history[message.from_user.id],
             proompt=message.text
         )

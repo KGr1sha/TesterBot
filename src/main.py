@@ -7,7 +7,7 @@ from aiogram import Dispatcher
 from aiogram.types import  BotCommand
 
 from routers.test import DeletingTestScene, TestingScene
-from setup import bot, dispatcher, set_commands
+from setup import bot, dispatcher, set_commands, llm_client
 from database.setup import create_tables
 from routers import (
     general_router,
@@ -45,7 +45,11 @@ async def main() -> None:
     ]
     register(dispatcher)
 
-    asyncio.gather(create_tables(), set_commands(commands))
+    asyncio.gather(
+        create_tables(),
+        set_commands(commands),
+        llm_client.init_token()
+    )
     await dispatcher.start_polling(bot)
 
 

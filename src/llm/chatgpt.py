@@ -11,7 +11,7 @@ class ChatGPT(LLM):
         load_dotenv()
         self.token = os.getenv("OPENAI_KEY")
 
-    async def use(self, model, history, proompt) -> str:
+    async def use(self, proompt: str, history: list = [], model: str = "") -> str:
         if not self.token:
             raise Exception("Need to init token first")
 
@@ -23,7 +23,11 @@ class ChatGPT(LLM):
             model=model,
             messages=history 
         )
-        return str(completion.choices[0].message)
+        response_text = completion.choices[0].message
+        history.append(
+            {"role": "user", "content": response_text}
+        )
+        return str(response_text)
 
 
 async def main() -> None:

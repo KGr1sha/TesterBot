@@ -10,10 +10,12 @@ from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
 from llm import Gigachat
+from llm.gemini import Gemini
 from states import TestCreation, Substate, TestingState
 from database.operations import add_test, delete_test, get_test 
 from database.models import TestStruct
 from proomptgen import ProomptGenerator
+from setup import llm_client
 
 test_router = Router()
 
@@ -79,17 +81,11 @@ class CreateTestScene(Scene, state="create_test"):
             data["time"],
         )
         await message.answer("генерация теста...")
-        chat = Gigachat()
-        await chat.init_token()
         generator = ProomptGenerator()
 
         proompt = generator.create_test(t)
         start = time()
-        test = await chat.use(
-            model="GigaChat",
-            history=[],
-            proompt=proompt
-        )
+        test = await llm_client.use(proompt)
         end = time()
         await message.answer(f"test generated. took {end - start} seconds")
         await message.answer(test)
@@ -114,8 +110,6 @@ class TestingScene(Scene, state="testing"):
             query.answer("error")
             return
 
-        chat = Gigachat()
-        await chat.init_token()
         generator = ProomptGenerator()
 
         if query.from_user.id not in message_history.keys():
@@ -123,8 +117,7 @@ class TestingScene(Scene, state="testing"):
 
         proompt = generator.take_test(test.content_text)
         start = time()
-        response = await chat.use(
-            model="GigaChat",
+        response = await llm_client.use(
             history=message_history[query.from_user.id],
             proompt=proompt
         )
@@ -140,11 +133,7 @@ class TestingScene(Scene, state="testing"):
     async def handle_take_state(self, message: Message, state: FSMContext) -> None:
         if not message.from_user or not message.text: return
 
-        chat = Gigachat()
-        await chat.init_token()
-
-        response = await chat.use(
-            model="GigaChat",
+        response = await llm_client.use(
             history=message_history[message.from_user.id],
             proompt=message.text
         )

@@ -51,7 +51,7 @@ class Gigachat(LLM):
                 return [model['id'] for model in json['data']]
 
 
-    async def use(self, model: str, history: list, proompt: str) -> str:
+    async def use(self, proompt: str, history: list = [], model: str = "GigaChat") -> str:
         history.append({
             "role": "user",
             "content": proompt,
@@ -88,11 +88,8 @@ class Gigachat(LLM):
 async def main() -> None:
     chat = Gigachat()
     await chat.init_token()
-    message_history = []
     response = await chat.use(
-        "GigaChat",
-        message_history,
-        "Привет, расскажи, что ты можешь."
+        proompt="Привет, расскажи, что ты можешь.",
     )
     print(response)
 

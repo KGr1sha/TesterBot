@@ -12,8 +12,8 @@
 - [x] good testing proompt
 - [x] deleting tests
 - [x] add chatgpt support
+- [x] maybe good llm? (Gemini)
 
 ### sometime
 - [ ] training proompts
 - [ ] training mode
-- [ ] maybe good llm?

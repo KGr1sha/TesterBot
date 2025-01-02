@@ -3,5 +3,5 @@ class LLM:
         self.token = ""
 
 
-    async def use(self, model, history, proompt) -> str:
+    async def use(self, proompt: str, history: list = [], model: str = "") -> str:
         return "Not implemented."
