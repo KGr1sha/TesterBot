@@ -25,3 +25,18 @@ class ProomptGenerator():
 
         return response, proompt
 
+
+    async def take_test(self, test_text: str) -> tuple[str, str]:
+        proompt = get_proompt("take_test").format(
+            test_content=test_text
+        )
+
+        response = await use(
+            access_token=self.token,
+            model="GigaChat",
+            message_history=[],
+            proompt=proompt 
+        )
+
+        return response, proompt
+

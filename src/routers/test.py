@@ -1,21 +1,27 @@
 from time import time
 
 from aiogram import Router
-from aiogram.enums import ParseMode
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from aiogram.types import (Message,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardRemove,
+    CallbackQuery
+)
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
-from gigachat import get_access_token 
+from gigachat import get_access_token, use
 from states import TestCreation, Substate
-from database.operations import add_test
+from database.operations import add_test, get_test
 from database.models import TestStruct
 from testgen import ProomptGenerator
+from proompts import get_proompt
 
 test_router = Router()
 
 access_token: str
+message_history = {}
 
 
 class CreateTestScene(Scene, state="create_test"):
@@ -94,5 +100,31 @@ class CreateTestScene(Scene, state="create_test"):
         await state.clear()
 
 
+class TestingScene(Scene, state="testing"):
+    @on.callback_query.enter()
+    async def on_enter(self, query: CallbackQuery, state: FSMContext) -> None:
+        if not query.data or not query.from_user: return
+        test_id = int(query.data)
+        test = await get_test(test_id)
+        if not test:
+            query.answer("error")
+            return
+
+
+        generator = ProomptGenerator(await get_access_token())
+        start = time()
+        result = await generator.take_test(test.content_text)
+        end = time()
+
+        await query.message.edit_text(
+            result[0] + f"\n\ntook {end - start} seconds\n\n"\
+            + f"original prooompt:\n{result[1]}"
+        )
+
+
+
+
+
 test_router.message.register(CreateTestScene.as_handler(), Command("create_test"))
+test_router.callback_query.register(TestingScene.as_handler())
 

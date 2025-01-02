@@ -6,6 +6,7 @@ from aiogram.fsm.scene import SceneRegistry
 from aiogram import Dispatcher 
 from aiogram.types import  BotCommand
 
+from routers.test import TestingScene
 from setup import bot, dispatcher, set_commands
 from database.setup import create_tables
 from routers import (
@@ -28,6 +29,7 @@ def register(dispatcher: Dispatcher) -> None:
     scene_registry.add(StartScene)
     scene_registry.add(ChatScene, router=chat_router)
     scene_registry.add(CreateTestScene, router=test_router)
+    scene_registry.add(TestingScene, router=test_router)
 
 
 async def main() -> None:

@@ -7,11 +7,11 @@
 - [x] test creating prooompts
 - [x] test creation mode
 - [x] saving tests to db
-### 01.01
-- [ ]
-- [ ]
-- [ ]
 
+### 02.01
+- [ ] good testing proompt
+- [ ] deleting tests
 
+### sometime
 - [ ] training proompts
 - [ ] training mode

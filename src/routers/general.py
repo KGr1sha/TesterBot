@@ -1,5 +1,5 @@
 from aiogram import Router 
-from aiogram.filters import Command, callback_data
+from aiogram.filters import Command 
 from aiogram.types import CallbackQuery, Message 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
@@ -50,14 +50,14 @@ async def list_tests(message: Message, state: FSMContext) -> None:
     await state.set_state("selecting_test")
 
 
-@general_router.callback_query()
-async def handle_test_selection(query: CallbackQuery, state: FSMContext) -> None:
-    if not query.data: return
-    test_id = int(query.data)
-    test = await get_test(test_id)
-    if not test:
-        query.answer("error")
-        return
-
-    await query.message.edit_text(test.content_text)
-    
+#@general_router.callback_query()
+#async def handle_test_selection(query: CallbackQuery, state: FSMContext) -> None:
+#    if not query.data: return
+#    test_id = int(query.data)
+#    test = await get_test(test_id)
+#    if not test:
+#        query.answer("error")
+#        return
+#
+#    await query.message.edit_text(test.content_text)
+#    
