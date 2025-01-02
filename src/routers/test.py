@@ -2,10 +2,8 @@ from time import time
 
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import (Message,
-    ReplyKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardRemove,
+from aiogram.types import (
+    Message,
     CallbackQuery
 )
 from aiogram.fsm.scene import Scene, on
@@ -133,8 +131,7 @@ class TestingScene(Scene, state="testing"):
         end = time()
 
         await query.message.edit_text(
-            response + f"\n\ntook {end - start} seconds\n\n"\
-            + f"original prooompt:\n{proompt}"
+            response + f"\n\ntook {end - start} seconds"
         )
         await state.update_data(substate=TestingState.taking_test)
 
