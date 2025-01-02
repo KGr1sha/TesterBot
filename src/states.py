@@ -9,6 +9,11 @@ class UserForm(StatesGroup):
     education = State()
 
 
+class TestingState(StatesGroup):
+    selecting_delete = State()
+    selecting_take = State()
+
+
 class TestCreation(StatesGroup):
     subject = State()
     theme = State()

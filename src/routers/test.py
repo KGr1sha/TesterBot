@@ -11,12 +11,11 @@ from aiogram.types import (Message,
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
-from gigachat import get_access_token, use
-from states import TestCreation, Substate
-from database.operations import add_test, get_test
+from gigachat import get_access_token 
+from states import TestCreation, Substate, TestingState
+from database.operations import add_test, delete_test, get_test 
 from database.models import TestStruct
 from testgen import ProomptGenerator
-from proompts import get_proompt
 
 test_router = Router()
 
@@ -122,9 +121,16 @@ class TestingScene(Scene, state="testing"):
         )
 
 
-
+class DeletingTestScene(Scene, state="deleting_test"):
+    @on.callback_query.enter()
+    async def on_enter(self, query: CallbackQuery, state: FSMContext) -> None:
+        if not query.data or not query.from_user: return
+        test_id = int(query.data)
+        await delete_test(test_id)
+        await query.message.edit_text("test deleted")
 
 
 test_router.message.register(CreateTestScene.as_handler(), Command("create_test"))
-test_router.callback_query.register(TestingScene.as_handler())
+test_router.callback_query.register(TestingScene.as_handler(), TestingState.selecting_take)
+test_router.callback_query.register(DeletingTestScene.as_handler(), TestingState.selecting_delete)
 

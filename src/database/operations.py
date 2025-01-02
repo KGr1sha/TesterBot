@@ -135,3 +135,15 @@ async def get_tests(user_id: int, session: AsyncSession=AsyncSession()) -> Optio
     except SQLAlchemyError as e:
         print(f"ERROR: {e}")
         await session.rollback()
+
+
+@connection
+async def delete_test(test_id: int, session: AsyncSession = AsyncSession()) -> None:
+    try:
+        await session.execute(delete(Test).where(Test.id==test_id))
+        await session.commit()
+
+    except SQLAlchemyError as e:
+        print(f"ERROR: {e}")
+        await session.rollback()
+

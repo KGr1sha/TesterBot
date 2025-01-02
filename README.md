@@ -10,7 +10,7 @@
 
 ### 02.01
 - [ ] good testing proompt
-- [ ] deleting tests
+- [x] deleting tests
 
 ### sometime
 - [ ] training proompts

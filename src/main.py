@@ -6,7 +6,7 @@ from aiogram.fsm.scene import SceneRegistry
 from aiogram import Dispatcher 
 from aiogram.types import  BotCommand
 
-from routers.test import TestingScene
+from routers.test import DeletingTestScene, TestingScene
 from setup import bot, dispatcher, set_commands
 from database.setup import create_tables
 from routers import (
@@ -30,6 +30,7 @@ def register(dispatcher: Dispatcher) -> None:
     scene_registry.add(ChatScene, router=chat_router)
     scene_registry.add(CreateTestScene, router=test_router)
     scene_registry.add(TestingScene, router=test_router)
+    scene_registry.add(DeletingTestScene, router=test_router)
 
 
 async def main() -> None:
@@ -38,7 +39,8 @@ async def main() -> None:
         BotCommand(command="chat", description="Гигачат"),
         BotCommand(command="users", description="Список пользователей"),
         BotCommand(command="delusers", description="Удалить всех пользователей"),
-        BotCommand(command="tests", description="Список тестов"),
+        BotCommand(command="take_test", description="Пройти тест"),
+        BotCommand(command="delete_test", description="Удалить тест"),
         BotCommand(command="create_test", description="Создать тесе"),
     ]
     register(dispatcher)

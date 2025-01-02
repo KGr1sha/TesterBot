@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 
 from database.models import TestStruct
 from database.operations import delete_all_users, get_test, get_users, get_tests
+from states import TestingState
 
 general_router = Router()
 
@@ -28,8 +29,19 @@ async def delusers_handler(message: Message) -> None:
     await message.answer(f"deleted {deleted} users")
 
 
-@general_router.message(Command("tests"))
-async def list_tests(message: Message, state: FSMContext) -> None:
+@general_router.message(Command("take_test"))
+async def handle_tests(message: Message, state: FSMContext) -> None:
+    await list_tests(message)
+    await state.set_state(TestingState.selecting_take)
+
+
+@general_router.message(Command("delete_test"))
+async def handle_delete_tests(message: Message, state: FSMContext) -> None:
+    await list_tests(message)
+    await state.set_state(TestingState.selecting_delete)
+
+
+async def list_tests(message: Message) -> None:
     if not message.from_user: return
 
     id = message.from_user.id
@@ -47,7 +59,6 @@ async def list_tests(message: Message, state: FSMContext) -> None:
         )
     builder.adjust(1, True)
     await message.answer("Тесты:", reply_markup=builder.as_markup())
-    await state.set_state("selecting_test")
 
 
 #@general_router.callback_query()
