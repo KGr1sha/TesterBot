@@ -15,7 +15,7 @@ from llm import Gigachat
 from states import TestCreation, Substate, TestingState
 from database.operations import add_test, delete_test, get_test 
 from database.models import TestStruct
-from testgen import ProomptGenerator
+from proomptgen import ProomptGenerator
 
 test_router = Router()
 
@@ -137,6 +137,7 @@ class TestingScene(Scene, state="testing"):
             + f"original prooompt:\n{proompt}"
         )
         await state.update_data(substate=TestingState.taking_test)
+
 
     @on.message(Substate("substate", TestingState.taking_test))
     async def handle_take_state(self, message: Message, state: FSMContext) -> None:

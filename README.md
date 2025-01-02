@@ -9,9 +9,11 @@
 - [x] saving tests to db
 
 ### 02.01
-- [ ] good testing proompt
+- [x] good testing proompt
 - [x] deleting tests
+- [x] add chatgpt support
 
 ### sometime
 - [ ] training proompts
 - [ ] training mode
+- [ ] maybe good llm?
