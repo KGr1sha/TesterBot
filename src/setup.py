@@ -18,7 +18,7 @@ def get_bot_token() -> str:
     return bt
 
 bot_token = get_bot_token()
-bot = Bot(token=bot_token, default=DefaultBotProperties())
+bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dispatcher = Dispatcher(
     events_isolation=SimpleEventIsolation(),
 )
