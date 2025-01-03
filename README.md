@@ -22,3 +22,9 @@
 ### later
 - [ ] add some keyboards
 - [ ] make new take_test proompt so that the bot always shows the test again
+- [ ] make all messages in russian
+- [ ] wtf is langchain?
+- [ ] notifications
+- [ ] scoring tests
+- [ ] timer for tests?
+- [ ] polish
