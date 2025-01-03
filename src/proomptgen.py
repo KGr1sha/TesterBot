@@ -1,9 +1,9 @@
 from proompts import get_proompt
-from database.models import TestStruct
+from database.models import TestData, TrainingData
 
 class ProomptGenerator():
-    def create_test(self, test_data: TestStruct) -> str:
-        proompt = get_proompt("create_test").format(
+    def create_test(self, test_data: TestData) -> str:
+        return get_proompt("create_test").format(
             subject=test_data.subject,
             theme=test_data.theme,
             number_of_questions=test_data.number_of_questions,
@@ -12,13 +12,18 @@ class ProomptGenerator():
             time=test_data.time
         )
 
-        return proompt
-
 
     def take_test(self, test_text: str) -> str:
-        proompt = get_proompt("take_test").format(
+        return get_proompt("take_test").format(
             test_content=test_text
         )
 
-        return proompt
+    
+    def train(self, training_data: TrainingData) -> str:
+        return get_proompt("train").format(
+            subject=training_data.subject,
+            theme=training_data.theme,
+            question_type=training_data.question_type,
+            difficulty=training_data.difficulty
+        )
 

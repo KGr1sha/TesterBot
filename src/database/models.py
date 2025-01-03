@@ -5,13 +5,21 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
 @dataclass
-class TestStruct:
+class TestData:
     subject: str
     theme: str
     number_of_questions: str
     question_type: str
     difficulty: str
     time: str
+
+
+@dataclass
+class TrainingData:
+    subject: str
+    theme: str
+    question_type: str
+    difficulty: str
 
 
 class User(Base):

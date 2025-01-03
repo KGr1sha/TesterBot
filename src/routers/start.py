@@ -13,7 +13,6 @@ start_router = Router()
 class StartScene(Scene, state="start"):
     @on.message.enter()
     async def start_handler(self, message: Message, state: FSMContext) -> None:
-        print("ENTER START SCENE")
         if not message.from_user: return
         user = await get_user(tg_id=message.from_user.id)
         if user:

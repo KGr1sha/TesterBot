@@ -14,6 +14,11 @@
 - [x] add chatgpt support
 - [x] maybe good llm? (Gemini)
 
-### sometime
-- [ ] training proompts
-- [ ] training mode
+### 03.01
+- [x] training proompts
+- [x] training mode
+- [x] fix commands
+
+### later
+- [ ] add some keyboards
+- [ ] make new take_test proompt so that the bot always shows the test again

@@ -9,17 +9,14 @@ from aiogram.types import (
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
-from llm import Gigachat
-from llm.gemini import Gemini
 from states import TestCreation, Substate, TestingState
 from database.operations import add_test, delete_test, get_test 
-from database.models import TestStruct
+from database.models import TestData
 from proomptgen import ProomptGenerator
 from setup import llm_client
 
 test_router = Router()
 
-access_token: str
 message_history = {}
 
 
@@ -72,7 +69,7 @@ class CreateTestScene(Scene, state="create_test"):
 
         await state.update_data(time=message.text)
         data = await state.get_data()
-        t = TestStruct(
+        t = TestData(
             data["subject"],
             data["theme"],
             data["noq"],
@@ -130,7 +127,7 @@ class TestingScene(Scene, state="testing"):
 
 
     @on.message(Substate("substate", TestingState.taking_test))
-    async def handle_take_state(self, message: Message, state: FSMContext) -> None:
+    async def handle_take_state(self, message: Message) -> None:
         if not message.from_user or not message.text: return
 
         response = await llm_client.use(
@@ -142,7 +139,7 @@ class TestingScene(Scene, state="testing"):
 
 class DeletingTestScene(Scene, state="deleting_test"):
     @on.callback_query.enter()
-    async def on_enter(self, query: CallbackQuery, state: FSMContext) -> None:
+    async def on_enter(self, query: CallbackQuery) -> None:
         if not query.data or not query.from_user: return
         test_id = int(query.data)
         await delete_test(test_id)

@@ -1,11 +1,11 @@
 from aiogram import Router 
 from aiogram.filters import Command 
-from aiogram.types import CallbackQuery, Message 
+from aiogram.types import Message 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 
-from database.models import TestStruct
-from database.operations import delete_all_users, get_test, get_users, get_tests
+from database.models import TestData
+from database.operations import delete_all_users, get_users, get_tests
 from states import TestingState
 
 general_router = Router()
@@ -21,12 +21,6 @@ async def list_users(message: Message) -> None:
     for user in users:
         response += str(user) + "\n"
     await message.answer(response)
-
-
-@general_router.message(Command("delusers"))
-async def delusers_handler(message: Message) -> None:
-    deleted = await delete_all_users()
-    await message.answer(f"deleted {deleted} users")
 
 
 @general_router.message(Command("take_test"))
@@ -52,7 +46,7 @@ async def list_tests(message: Message) -> None:
 
     builder = InlineKeyboardBuilder()
     for test in tests:
-        settings: TestStruct = test["settings"]
+        settings: TestData = test["settings"]
         builder.button(
             text=f"{settings.subject} | {settings.theme} | {test["created_at"]}",
             callback_data=f"{test["id"]}",

@@ -18,13 +18,12 @@ def get_bot_token() -> str:
     return bt
 
 bot_token = get_bot_token()
-bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=bot_token, default=DefaultBotProperties())
 dispatcher = Dispatcher(
     events_isolation=SimpleEventIsolation(),
 )
 llm_client = Gemini()
 
-async def set_commands(commands: list[BotCommand]) -> None:
-    await bot.set_my_commands(commands, BotCommandScopeDefault())
-
+async def set_commands(commands: list[BotCommand]) -> bool:
+    return await bot.set_my_commands(commands, BotCommandScopeDefault())
 

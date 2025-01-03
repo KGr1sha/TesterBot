@@ -4,7 +4,7 @@ from sqlalchemy import Result, delete, select
 from typing import Optional
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import TestStruct
+from .models import TestData
 
 
 @connection
@@ -65,7 +65,7 @@ async def delete_all_users(session: AsyncSession=AsyncSession()) -> int:
 
 
 @connection
-async def add_test(user_id: int, test_settings: TestStruct, test_content: str, session: AsyncSession=AsyncSession()) -> Optional[Test]:
+async def add_test(user_id: int, test_settings: TestData, test_content: str, session: AsyncSession=AsyncSession()) -> Optional[Test]:
     try:
         user = await get_user(user_id)
 
@@ -116,7 +116,7 @@ async def get_tests(user_id: int, session: AsyncSession=AsyncSession()) -> Optio
 
         test_list = [{
             "id": test.id,
-            "settings": TestStruct(
+            "settings": TestData(
                 subject = test.subject,
                 theme=test.theme,
                 number_of_questions=test.number_of_questions,
