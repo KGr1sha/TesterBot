@@ -15,7 +15,7 @@ general_router = Router()
 async def list_users(message: Message) -> None:
     users = await get_users()
     if not users:
-        await message.answer("No registered users")
+        await message.answer("Нет зарегестрированных пользователей")
         return None
     response = ""
     for user in users:

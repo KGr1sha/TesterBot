@@ -19,10 +19,12 @@
 - [x] training mode
 - [x] fix commands
 
-### later
+### 04.01
+- [x] make new take_test proompt so that the bot always shows the test again
+- [x] make all messages in russian
 - [ ] add some keyboards
-- [ ] make new take_test proompt so that the bot always shows the test again
-- [ ] make all messages in russian
+
+### later
 - [ ] wtf is langchain?
 - [ ] notifications
 - [ ] scoring tests

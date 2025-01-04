@@ -1,6 +1,7 @@
 from time import time
 
 from aiogram import Router
+from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import (
     Message,
@@ -10,7 +11,7 @@ from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
 from states import TestCreation, Substate, TestingState
-from database.operations import add_test, delete_test, get_test 
+from database.operations import add_test, delete_test, get_test, get_user
 from database.models import TestData
 from proomptgen import ProomptGenerator
 from setup import llm_client
@@ -23,6 +24,11 @@ message_history = {}
 class CreateTestScene(Scene, state="create_test"):
     @on.message.enter()
     async def on_enter(self, message: Message, state: FSMContext) -> None:
+        if not message.from_user: return
+        user = await get_user(message.from_user.id)
+        if not user:
+            await message.answer("Вы не зарегестрированы. Напишите /start")
+            return
         await state.update_data(creation_state=TestCreation.subject)
         await message.answer("Создаем тест!")
         await message.answer("Предмет?")
@@ -81,19 +87,14 @@ class CreateTestScene(Scene, state="create_test"):
         generator = ProomptGenerator()
 
         proompt = generator.create_test(t)
-        start = time()
         test = await llm_client.use(proompt)
-        end = time()
-        await message.answer(f"test generated. took {end - start} seconds")
-        await message.answer(test)
-        await message.answer(f"original proompt:\n{proompt}")
 
         added = await add_test(message.from_user.id, t, test)
-        if added:
-            await message.answer("test added")
-        else:
-            await message.answer("user not present")
+        if not added:
+            await message.answer("Ошибка при добавлении теста")
+            return;
 
+        await message.answer("Тест добавлен!\nЧтобы пройти его используйте /take_test")
         await state.clear()
 
 
@@ -104,25 +105,20 @@ class TestingScene(Scene, state="testing"):
         test_id = int(query.data)
         test = await get_test(test_id)
         if not test:
-            query.answer("error")
+            query.answer("Ошибка")
             return
 
         generator = ProomptGenerator()
 
-        if query.from_user.id not in message_history.keys():
-            message_history[query.from_user.id] = list()
+        message_history[query.from_user.id] = list()
 
         proompt = generator.take_test(test.content_text)
-        start = time()
         response = await llm_client.use(
             history=message_history[query.from_user.id],
             proompt=proompt
         )
-        end = time()
 
-        await query.message.edit_text(
-            response + f"\n\ntook {end - start} seconds"
-        )
+        await query.message.edit_text(response)
         await state.update_data(substate=TestingState.taking_test)
 
 
@@ -143,7 +139,7 @@ class DeletingTestScene(Scene, state="deleting_test"):
         if not query.data or not query.from_user: return
         test_id = int(query.data)
         await delete_test(test_id)
-        await query.message.edit_text("test deleted")
+        await query.message.edit_text("Тест удален")
 
 
 test_router.message.register(CreateTestScene.as_handler(), Command("create_test"))

@@ -15,29 +15,19 @@ class ChatScene(Scene, state="chat"):
             history[message.from_user.id] = list()
 
         markup = ReplyKeyboardMarkup(keyboard=[
-            [KeyboardButton(text="exit")],
-            [KeyboardButton(text="history")],
+            [KeyboardButton(text="Закончить чат")],
         ], resize_keyboard=True)
-        await message.answer("gigachating", reply_markup=markup)
+        await message.answer("Режим чата", reply_markup=markup)
 
 
     @on.message.exit()
     async def on_exit(self, message: Message) -> None:
-        await message.answer("chat ended", reply_markup=ReplyKeyboardRemove())
+        await message.answer("Чат закончился", reply_markup=ReplyKeyboardRemove())
 
 
-    @on.message(F.text == "exit")
-    async def exit(self, message: Message) -> None:
+    @on.message(F.text == "Закончить чат")
+    async def exit(self, _: Message) -> None:
         await self.wizard.exit()
-
-
-    @on.message(F.text == "history")
-    async def bomba(self, message: Message) -> None:
-        if not message.from_user: return
-        id = message.from_user.id
-        if not history[id]:
-            await message.answer("no messages with gigachat yet")
-        await message.answer(str(history[id]))
 
 
     @on.message(F.text)

@@ -41,14 +41,14 @@ def register(dispatcher: Dispatcher) -> None:
 async def on_startup():
     commands = [
         BotCommand(command="start", description="Регистрация"),
-        BotCommand(command="chat", description="Гигачат"),
-        BotCommand(command="users", description="Список пользователей"),
-        BotCommand(command="take_test", description="Пройти тест"),
-        BotCommand(command="delete_test", description="Удалить тест"),
         BotCommand(command="create_test", description="Создать тест"),
+        BotCommand(command="delete_test", description="Удалить тест"),
+        BotCommand(command="take_test", description="Пройти тест"),
         BotCommand(command="train", description="Режим тренировки"),
+        BotCommand(command="chat", description="Режим чата с LLM"),
+        BotCommand(command="help", description="Помощь"),
+        BotCommand(command="users", description="Список пользователей"),
     ]
-    #await bot.set_my_commands([], BotCommandScopeAllPrivateChats())
 
     register(dispatcher)
     asyncio.gather(
