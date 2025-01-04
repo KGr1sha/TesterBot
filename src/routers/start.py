@@ -4,7 +4,6 @@ from aiogram.fsm.scene import Scene, on
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
-from messages import messages
 from states import Substate, UserForm
 from database.operations import set_user, get_user
 
@@ -21,13 +20,17 @@ class StartScene(Scene, state="start"):
             return
 
         await state.update_data(step=UserForm.name)
-        await message.answer("\n".join(messages["start"]))
+        await message.answer(
+            """Привет, я бот для составления тестов!
+            Для начала ответь на несколько вопросов)
+            1. Как тебя называть?"""
+        )
 
     @on.message(Substate("step", UserForm.name))
     async def process_name(self, message: Message, state: FSMContext) -> None:
         await state.update_data(name=message.text)
         await state.update_data(step=UserForm.education)
-        await message.answer("\n".join(messages["education"]))
+        await message.answer("2. Какой у тебя уровень образования?")
 
     @on.message(Substate("step", UserForm.education))
     async def process_education(self, message: Message, state: FSMContext) -> None:

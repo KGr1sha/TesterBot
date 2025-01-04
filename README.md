@@ -22,7 +22,7 @@
 ### 04.01
 - [x] make new take_test proompt so that the bot always shows the test again
 - [x] make all messages in russian
-- [ ] add some keyboards
+- [x] add some keyboards
 
 ### later
 - [ ] wtf is langchain?

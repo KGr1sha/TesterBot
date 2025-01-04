@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 
 from database.models import TestData
-from database.operations import delete_all_users, get_users, get_tests
+from database.operations import get_users, get_tests
 from states import TestingState
 
 general_router = Router()

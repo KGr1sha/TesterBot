@@ -9,19 +9,11 @@ from states import Substate, TrainingState
 from database.models import TrainingData
 from proomptgen import ProomptGenerator
 from setup import llm_client
+from keyboards import difficulty_keyboard, question_type_keyboard, train_keyboard
 
 train_router = Router()
 
 message_history = {}
-
-
-def make_keyboard() -> ReplyKeyboardMarkup:
-    builder = ReplyKeyboardBuilder()
-    builder.button(text="Следующий вопрос")
-    builder.button(text="Объясни")
-    builder.button(text="Закончить тренировку")
-    builder.adjust(2, 1)
-    return builder.as_markup(resize_keyboard=True)
 
 
 class TrainingScene(Scene, state="training"):
@@ -43,14 +35,14 @@ class TrainingScene(Scene, state="training"):
     async def handle_theme(self, message: Message, state: FSMContext) -> None:
         await state.update_data(theme=message.text)
         await state.update_data(trainstate=TrainingState.question_type)
-        await message.answer("Тип вопросов")
+        await message.answer("Тип вопросов", reply_markup=question_type_keyboard())
 
 
     @on.message(Substate("trainstate", TrainingState.question_type))
     async def handle_qtype(self, message: Message, state: FSMContext) -> None:
         await state.update_data(qtype=message.text)
         await state.update_data(trainstate=TrainingState.difficulty)
-        await message.answer("Сложность?")
+        await message.answer("Сложность?", reply_markup=difficulty_keyboard())
 
 
     @on.message(Substate("trainstate", TrainingState.difficulty))
@@ -75,7 +67,7 @@ class TrainingScene(Scene, state="training"):
             proompt=generator.train(t)
         )
 
-        await message.answer(response, reply_markup=make_keyboard())
+        await message.answer(response, reply_markup=train_keyboard())
 
 
     @on.message(Substate("trainstate", TrainingState.training))
@@ -87,7 +79,7 @@ class TrainingScene(Scene, state="training"):
             history=message_history[id],
             proompt=message.text
         )
-        await message.answer(response, reply_markup=make_keyboard())
+        await message.answer(response, reply_markup=train_keyboard())
 
 
     @on.message(F.text == "Закончить тренировку")
