@@ -37,7 +37,6 @@ def register(dispatcher: Dispatcher) -> None:
     scene_registry.add(TrainingScene, router=train_router)
 
 
-
 async def on_startup():
     commands = [
         BotCommand(command="start", description="Регистрация"),
@@ -45,6 +44,7 @@ async def on_startup():
         BotCommand(command="delete_test", description="Удалить тест"),
         BotCommand(command="take_test", description="Пройти тест"),
         BotCommand(command="train", description="Режим тренировки"),
+        BotCommand(command="stats", description="Статистика"),
         BotCommand(command="chat", description="Режим чата с LLM"),
         BotCommand(command="help", description="Помощь"),
         BotCommand(command="users", description="Список пользователей"),

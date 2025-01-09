@@ -24,9 +24,12 @@
 - [x] make all messages in russian
 - [x] add some keyboards
 
+### 05.01
+- [x] scoring tests
+- [x] statistics on tests
+
 ### later
-- [ ] wtf is langchain?
-- [ ] notifications
-- [ ] scoring tests
-- [ ] timer for tests?
+- [ ] timer for tests
+- [ ] notifications after not using for 1 day
+- [ ] form after 1 test
 - [ ] polish

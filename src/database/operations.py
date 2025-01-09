@@ -13,7 +13,13 @@ async def set_user(tg_id: int, username: str, education: str, session: AsyncSess
         user = await session.scalar(select(User).filter_by(id=tg_id))
 
         if not user:
-            new_user = User(id=tg_id, username=username, education=education)
+            new_user = User(
+                id=tg_id,
+                username=username,
+                education=education,
+                right_answers=0,
+                total_answers=0
+            )
             session.add(new_user)
             await session.commit()
             return None
@@ -26,10 +32,21 @@ async def set_user(tg_id: int, username: str, education: str, session: AsyncSess
 
 
 @connection
-async def get_user(tg_id: int, session: AsyncSession=AsyncSession()) -> Optional[User]:
+async def get_user(tg_id: int, session: AsyncSession=AsyncSession()) -> Optional[dict]:
     try:
         user = await session.scalar(select(User).filter_by(id=tg_id))
-        return user
+        if not user:
+            return None
+
+        user_dict = {
+            "id": user.id,
+            "name": user.username,
+            "education": user.education,
+            "last_activity": user.last_activity,
+            "total_answers": user.total_answers,
+            "right_answers": user.right_answers
+        }
+        return user_dict
 
     except SQLAlchemyError as e:
         print(f"ERROR: {e}")
@@ -49,25 +66,25 @@ async def get_users(session: AsyncSession=AsyncSession()):
 
 
 @connection
-async def delete_all_users(session: AsyncSession=AsyncSession()) -> int:
+async def add_user_statistics(user_id: int, add_right_answers: int, add_total_answers: int, session: AsyncSession=AsyncSession()) -> Optional[User]:
     try:
-        result: Result = await session.execute(select(User))
-        users = result.scalars().all()
-        cnt = len(users)
-        await session.execute(delete(User))
+        user = await session.scalar(select(User).filter_by(id=user_id))
+        if not user:
+            return None
+        user.right_answers += add_right_answers
+        user.total_answers += add_total_answers
         await session.commit()
-        return cnt
+        return user
+
     except SQLAlchemyError as e:
         print(f"ERROR: {e}")
         await session.rollback()
-
-    return 0
 
 
 @connection
 async def add_test(user_id: int, test_settings: TestData, test_content: str, session: AsyncSession=AsyncSession()) -> Optional[Test]:
     try:
-        user = await get_user(user_id)
+        user = await session.scalar(select(User).filter_by(id=user_id))
 
         if not user:
             return None
@@ -80,7 +97,8 @@ async def add_test(user_id: int, test_settings: TestData, test_content: str, ses
             question_type=test_settings.question_type,
             difficulty=test_settings.difficulty,
             time=test_settings.time,
-            content_text=test_content
+            content_text=test_content,
+            last_score=""
         )
 
         session.add(new_test)
@@ -91,6 +109,21 @@ async def add_test(user_id: int, test_settings: TestData, test_content: str, ses
         print(f"ERROR: {e}")
         await session.rollback()
 
+
+@connection
+async def update_test_score(test_id: int, new_score: str, session: AsyncSession=AsyncSession()) -> Optional[Test]:
+    try:
+        test = await session.scalar(select(Test).filter_by(id=test_id))
+        if (not test):
+            return None;
+        
+        test.last_score = new_score
+        await session.commit()
+        return test
+    
+    except SQLAlchemyError as e:
+        print(f"ERROR: {e}")
+        await session.rollback()
 
 
 @connection
@@ -126,6 +159,7 @@ async def get_tests(user_id: int, session: AsyncSession=AsyncSession()) -> Optio
             ),
             "content": test.content_text,
             "created_at": test.created_at,
+            "last_score": test.last_score
         } for test in tests]
         
 

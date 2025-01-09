@@ -15,15 +15,15 @@ class StartScene(Scene, state="start"):
         if not message.from_user: return
         user = await get_user(tg_id=message.from_user.id)
         if user:
-            await message.answer("You are already registered")
+            await message.answer("Вы уже зарегестрированы")
             await self.wizard.back()
             return
 
         await state.update_data(step=UserForm.name)
         await message.answer(
             """Привет, я бот для составления тестов!
-            Для начала ответь на несколько вопросов)
-            1. Как тебя называть?"""
+Для начала ответь на несколько вопросов)
+1. Как тебя называть?"""
         )
 
     @on.message(Substate("step", UserForm.name))

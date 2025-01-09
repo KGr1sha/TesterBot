@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+from datetime import datetime
 
+from sqlalchemy import func
 from sqlalchemy import BigInteger, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -28,6 +30,9 @@ class User(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     username: Mapped[str] = mapped_column(String, nullable=True)
     education: Mapped[str] = mapped_column(String, nullable=True)
+    last_activity: Mapped[datetime] = mapped_column(server_default=func.now())
+    total_answers: Mapped[int] = mapped_column(Integer)
+    right_answers: Mapped[int] = mapped_column(Integer)
 
     tests: Mapped[list["Test"]] = relationship(
         "Test",
@@ -36,7 +41,7 @@ class User(Base):
     )
 
     def __str__(self) -> str:
-        return f"{self.id} | {self.username} | {self.education}"
+        return f"{self.id} | {self.username} | {self.education} | {self.right_answers}/{self.total_answers}"
 
 
 class Test(Base):
@@ -52,6 +57,7 @@ class Test(Base):
     difficulty: Mapped[str] = mapped_column(String, nullable=True)
     time: Mapped[str] = mapped_column(String, nullable=True)
     content_text: Mapped[str] = mapped_column(Text, nullable=True)
+    last_score: Mapped[str] = mapped_column(String, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="tests")
 

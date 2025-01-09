@@ -1,3 +1,4 @@
+from typing import Optional
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import (
@@ -9,7 +10,14 @@ from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
 from states import TestCreation, Substate, TestingState
-from database.operations import add_test, delete_test, get_test, get_user
+from database.operations import (
+    add_test,
+    add_user_statistics,
+    delete_test,
+    get_test,
+    get_user,
+    update_test_score,
+)
 from database.models import TestData
 from proomptgen import ProomptGenerator
 from setup import llm_client
@@ -108,11 +116,41 @@ class CreateTestScene(Scene, state="create_test"):
         await state.clear()
 
 
+
+async def save_score(response: str, user_id: int, test_id: int) -> bool:
+    if sum([x in response for x in "[/]"]) != 3: return False
+
+    # finding [ and ] from the end of the message
+    pos1 = 0
+    pos2 = 0
+    sep = 0
+    for i in range(len(response) - 1, -1, -1):
+        if response[i] == ']':
+            pos2 = i
+        elif response[i] == '/':
+            sep = i
+        elif response[i] == '[':
+            pos1 = i
+            break
+
+    right = int(response[pos1 + 1:sep])
+    total = int(response[sep + 1:pos2])
+
+    await update_test_score(test_id, f"{right}/{total}")
+    user = await add_user_statistics(
+        user_id,
+        right,
+        total
+    )
+    return user != None;
+
+
 class TestingScene(Scene, state="testing"):
     @on.callback_query.enter()
     async def on_enter(self, query: CallbackQuery, state: FSMContext) -> None:
         if not query.data or not query.from_user: return
         test_id = int(query.data)
+        await state.update_data(test_id=test_id)
         test = await get_test(test_id)
         if not test:
             query.answer("Ошибка")
@@ -147,16 +185,27 @@ class TestingScene(Scene, state="testing"):
             proompt=message.text
         )
         await message.answer(response)
+        await message.answer("Если остались вопросы, задавай!\nИначе напиши \"Завершить тест\" для сохранения результата!")
+
 
     @on.message(F.text == "Завершить тест")
-    async def handle_end_test(self, message: Message) -> None:
-        if not message.from_user: return
+    async def handle_end_test(self, message: Message, state: FSMContext) -> None:
+        if not message.from_user or not message.text: return
 
         response = await llm_client.use(
             history=message_history[message.from_user.id],
             proompt=message.text
         )
         await message.answer(response, reply_markup=ReplyKeyboardRemove())
+
+        user_id = message.from_user.id
+        test_id = int((await state.get_data())["test_id"])
+        saved = await save_score(response, user_id, test_id)
+        if saved:
+            await message.answer("Результат сохранен!")
+        else:
+            await message.answer("Не удалось сохранить результат")
+
         await self.wizard.exit()
         
 
