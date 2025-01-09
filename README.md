@@ -29,6 +29,7 @@
 - [x] statistics on tests
 
 ### later
+- [ ] fix take_test proompt again
 - [ ] timer for tests
 - [ ] notifications after not using for 1 day
 - [ ] form after 1 test
