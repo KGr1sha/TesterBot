@@ -32,8 +32,8 @@
 - [x] handle every message
 - [x] fix take_test proompt again
 - [x] form after 1 test
+- [x] timer for tests
 - [ ] notifications after not using for 1 day
     - [ ] tracking last user activity(taking test or training)
     - [ ] checking every day for users, whos activity is more than a day ago
-- [ ] timer for tests
 - [ ] polish

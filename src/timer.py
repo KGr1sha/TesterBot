@@ -1,14 +1,18 @@
 import asyncio
 
-async def background_task():
-    while True:
-        print("task is running")
-        await asyncio.sleep(1)
 
-async def exec_after_delay(callback, delay):
+async def exec_after_delay(callback, delay, args=[]):
     await asyncio.sleep(delay)
-    await callback
+    await callback(*args)
 
-def timer(callback, delay):
-    asyncio.create_task(exec_after_delay(callback, delay))
+def timer(callback, delay, args=[]):
+    return asyncio.create_task(exec_after_delay(callback, delay, args))
+
+async def exec_every(callback, period, args=[]):
+    while True:
+        await callback(*args)
+        await asyncio.sleep(period)
+
+def background_task(callback, period, args=[]):
+    return asyncio.create_task(exec_every(callback, period, args))
 

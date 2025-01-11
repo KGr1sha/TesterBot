@@ -7,6 +7,7 @@ from aiogram.types import (
 )
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
+from annotated_types import IsDigit
 
 from states import TestCreation, Substate, TestingState
 from database.operations import (
@@ -28,7 +29,7 @@ from keyboards import (
     time_keyboard,
     difficulty_keyboard
 )
-from timer import timer
+from timer import timer, background_task
 
 test_router = Router()
 
@@ -145,6 +146,18 @@ async def save_score(response: str, user_id: int, test_id: int) -> bool:
     return user != None;
 
 
+def get_test_time(time_str: str) -> int:
+    int_str = ""
+    i = 0
+    while i < len(time_str) and not time_str[i].isdigit():
+        i += 1
+    if i == len(time_str): return -1
+    while i < len(time_str) and time_str[i].isdigit():
+        int_str += time_str[i]
+        i += 1
+
+    return int(int_str)
+
 async def time_is_up(user_id: int):
     await bot.send_message(user_id, "Время вышло!")
 
@@ -180,7 +193,9 @@ class TestingScene(Scene, state="testing"):
             "У вас есть возможность досрочно завершить тест, не ответив на все вопросы.",
             reply_markup=testing_keyboard()
         )
-        timer(time_is_up(query.from_user.id), 5)
+        time = get_test_time(test.time)
+        if time == -1: return
+        timer(time_is_up, time, args=[query.from_user.id])
 
         
     @on.message(Substate("substate", TestingState.taking_test))
