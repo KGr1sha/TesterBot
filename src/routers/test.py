@@ -82,7 +82,7 @@ class CreateTestScene(Scene, state="create_test"):
     async def handle_difficultly(self, message: Message, state: FSMContext) -> None:
         await state.update_data(difficulty=message.text)
         await state.update_data(creation_state=TestCreation.time)
-        await message.answer("Время на выполнение?", reply_markup=time_keyboard())
+        await message.answer("Время на выполнение?(в минутах)", reply_markup=time_keyboard())
 
 
     @on.message(Substate("creation_state", TestCreation.time))
