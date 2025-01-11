@@ -1,4 +1,3 @@
-from typing import Optional
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import (
@@ -17,10 +16,11 @@ from database.operations import (
     get_test,
     get_user,
     update_test_score,
+    update_user_form,
 )
 from database.models import TestData
 from proomptgen import ProomptGenerator
-from setup import llm_client
+from setup import bot, llm_client 
 from keyboards import (
     question_type_keyboard,
     number_of_questions_keyboard,
@@ -28,7 +28,6 @@ from keyboards import (
     time_keyboard,
     difficulty_keyboard
 )
-from setup import bot
 
 test_router = Router()
 
@@ -145,6 +144,10 @@ async def save_score(response: str, user_id: int, test_id: int) -> bool:
     return user != None;
 
 
+async def time_is_up(user_id: int):
+    await bot.send_message(user_id, "time is up")
+
+
 class TestingScene(Scene, state="testing"):
     @on.callback_query.enter()
     async def on_enter(self, query: CallbackQuery, state: FSMContext) -> None:
@@ -155,6 +158,7 @@ class TestingScene(Scene, state="testing"):
         if not test:
             query.answer("Ошибка")
             return
+        await query.message.edit_text("⌛️")
 
         generator = ProomptGenerator()
 
@@ -166,7 +170,8 @@ class TestingScene(Scene, state="testing"):
             proompt=proompt
         )
 
-        await query.message.edit_text(response)
+        await query.message.edit_text(test.content_text)
+        await bot.send_message(query.from_user.id, response)
         await state.update_data(substate=TestingState.taking_test)
 
         await bot.send_message(
@@ -175,7 +180,7 @@ class TestingScene(Scene, state="testing"):
             reply_markup=testing_keyboard()
         )
 
-
+        
     @on.message(Substate("substate", TestingState.taking_test))
     async def handle_take_state(self, message: Message) -> None:
         if not message.from_user or not message.text: return
@@ -185,7 +190,7 @@ class TestingScene(Scene, state="testing"):
             proompt=message.text
         )
         await message.answer(response)
-        await message.answer("Если остались вопросы, задавай!\nИначе напиши \"Завершить тест\" для сохранения результата!")
+        await message.answer("Напишите \"Завершить тест\" для проверки и сохранения результата!")
 
 
     @on.message(F.text == "Завершить тест")
@@ -206,8 +211,22 @@ class TestingScene(Scene, state="testing"):
         else:
             await message.answer("Не удалось сохранить результат")
 
-        await self.wizard.exit()
+        user = await get_user(user_id) # is not None
+        if not user["filled_form"]:
+            #TODO: ask for form fill
+            await state.update_data(substate=TestingState.filling_form)
+            await message.answer("форму")
+        else:
+            await self.wizard.exit()
         
+
+    @on.message(Substate("substate", TestingState.filling_form))
+    async def fill_form(self, message: Message) -> None:
+        if not message.from_user or not message.text: return
+        user_id = message.from_user.id
+        await update_user_form(user_id, message.text)
+        await message.answer("Спасибо")
+
 
 
 class DeletingTestScene(Scene, state="deleting_test"):

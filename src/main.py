@@ -2,9 +2,9 @@ import asyncio
 import logging
 import sys
 
-from aiogram.fsm.scene import SceneRegistry
+from aiogram.fsm.scene import SceneRegistry 
 from aiogram import Dispatcher 
-from aiogram.types import BotCommand, BotCommandScopeAllChatAdministrators, BotCommandScopeAllGroupChats, BotCommandScopeAllPrivateChats, BotCommandScopeChat, BotCommandScopeDefault 
+from aiogram.types import BotCommand, Message
 
 from routers.test import DeletingTestScene, TestingScene
 from setup import bot, dispatcher, set_commands, llm_client
@@ -15,6 +15,7 @@ from routers import (
     chat_router,
     test_router,
     train_router,
+    fallback_router,
     ChatScene,
     CreateTestScene,
     StartScene,
@@ -27,6 +28,7 @@ def register(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(chat_router)
     dispatcher.include_router(test_router)
     dispatcher.include_router(train_router)
+    dispatcher.include_router(fallback_router)
 
     scene_registry = SceneRegistry(dispatcher)
     scene_registry.add(StartScene, router=start_router)

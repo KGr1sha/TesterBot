@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from sqlalchemy import func
-from sqlalchemy import BigInteger, Integer, String, ForeignKey, Text
+from sqlalchemy import BigInteger, Integer, String, ForeignKey, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -33,6 +33,8 @@ class User(Base):
     last_activity: Mapped[datetime] = mapped_column(server_default=func.now())
     total_answers: Mapped[int] = mapped_column(Integer)
     right_answers: Mapped[int] = mapped_column(Integer)
+    filled_form: Mapped[bool] = mapped_column(Boolean, default=False)
+    form_text: Mapped[str] = mapped_column(Text, nullable=True)
 
     tests: Mapped[list["Test"]] = relationship(
         "Test",
@@ -41,7 +43,7 @@ class User(Base):
     )
 
     def __str__(self) -> str:
-        return f"{self.id} | {self.username} | {self.education} | {self.right_answers}/{self.total_answers}"
+        return f"{self.id} | {self.username} | {self.education}" 
 
 
 class Test(Base):

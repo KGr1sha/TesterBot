@@ -1,10 +1,15 @@
 from .database import async_session, engine, Base
+from sqlalchemy.exc import SQLAlchemyError
 
 
 def connection(func):
     async def wrapper(*args, **kwargs):
         async with async_session() as session:
-            return await func(session=session, *args, **kwargs)
+            try:
+                return await func(session=session, *args, **kwargs)
+            except SQLAlchemyError as e:
+                print(f"ERROR: {e}")
+                await session.rollback()
 
     return wrapper
 

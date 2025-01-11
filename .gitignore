@@ -5,3 +5,4 @@ venv
 __pycache__
 todo.txt
 db.sqlite3
+test.py

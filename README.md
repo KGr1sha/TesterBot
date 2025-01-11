@@ -28,9 +28,10 @@
 - [x] scoring tests
 - [x] statistics on tests
 
-### later
-- [ ] fix take_test proompt again
-- [ ] timer for tests
+### 11.01
+- [x] handle every message
+- [x] fix take_test proompt again
+- [x] form after 1 test
 - [ ] notifications after not using for 1 day
-- [ ] form after 1 test
+- [ ] timer for tests
 - [ ] polish

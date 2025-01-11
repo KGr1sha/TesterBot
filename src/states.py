@@ -21,6 +21,7 @@ class TestingState(StatesGroup):
     selecting_delete = State()
     selecting_take = State()
     taking_test = State()
+    filling_form = State()
 
 
 class TestCreation(StatesGroup):

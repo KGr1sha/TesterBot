@@ -1,6 +1,7 @@
 from os import getenv
 
 from dotenv import load_dotenv
+import asyncio
 
 from aiogram import Bot, Dispatcher 
 from aiogram.client.default import DefaultBotProperties
@@ -26,4 +27,3 @@ llm_client = Gemini()
 
 async def set_commands(commands: list[BotCommand]) -> bool:
     return await bot.set_my_commands(commands, BotCommandScopeAllPrivateChats())
-

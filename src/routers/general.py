@@ -69,5 +69,10 @@ async def handle_delete_tests(message: Message, state: FSMContext) -> None:
 
 @general_router.message(Command("help"))
 async def show_help(message: Message):
-    await message.answer("Помогаю бро")
-
+    await message.answer("""Вот команды которые у меня есть:
+/help - список команд, который вы сейчас смотрите
+/create_test - можете создать тест на определенную тему
+/delete_test - можете удалить тест
+/take_test - можете пройти любой из созданных тестов
+/train - режим тренировки. бесконечные вопросы
+/stats - можете посмотреть свою статистику""")
