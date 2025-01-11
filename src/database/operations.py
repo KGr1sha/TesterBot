@@ -1,6 +1,6 @@
 from .setup import connection
 from .models import Test, User 
-from sqlalchemy import Result, delete, select
+from sqlalchemy import Result, delete, func, select
 from typing import Optional
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,7 +45,7 @@ async def get_user(tg_id: int, session: AsyncSession=AsyncSession()) -> Optional
 
 
 @connection
-async def get_users(session: AsyncSession=AsyncSession()):
+async def get_users(session: AsyncSession=AsyncSession()) -> list[User]:
     result: Result = await session.execute(select(User))
     users = result.scalars().all()
     return users
@@ -72,6 +72,13 @@ async def update_user_form(user_id: int, filled_text: str, session: AsyncSession
 
     await session.commit()
     return user
+
+@connection
+async def update_user_activity(user_id: int, session: AsyncSession=AsyncSession()):
+    user = await session.scalar(select(User).filter_by(id=user_id))
+    if not user: return
+    user.last_activity = func.now()
+    await session.commit()
 
 
 @connection

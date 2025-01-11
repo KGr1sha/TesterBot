@@ -1,12 +1,12 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from states import Substate, TrainingState 
 from database.models import TrainingData
+from database.operations import update_user_activity
 from proomptgen import ProomptGenerator
 from setup import llm_client
 from keyboards import difficulty_keyboard, question_type_keyboard, train_keyboard
@@ -19,9 +19,11 @@ message_history = {}
 class TrainingScene(Scene, state="training"):
     @on.message.enter()
     async def on_enter(self, message: Message, state: FSMContext) -> None:
+        if not message.from_user: return
         await message.answer("Режим тренировки!")
         await message.answer("Предмет?")
         await state.update_data(trainstate=TrainingState.subject)
+        await update_user_activity(message.from_user.id)
 
 
     @on.message(Substate("trainstate", TrainingState.subject))
@@ -80,6 +82,7 @@ class TrainingScene(Scene, state="training"):
             proompt=message.text
         )
         await message.answer(response, reply_markup=train_keyboard())
+        await update_user_activity(message.from_user.id)
 
 
     @on.message(F.text == "Закончить тренировку")

@@ -17,6 +17,7 @@ from database.operations import (
     get_test,
     get_user,
     update_test_score,
+    update_user_activity,
     update_user_form,
 )
 from database.models import TestData
@@ -47,6 +48,7 @@ class CreateTestScene(Scene, state="create_test"):
         await state.update_data(creation_state=TestCreation.subject)
         await message.answer("Создаем тест!")
         await message.answer("Предмет?")
+        await update_user_activity(message.from_user.id)
 
 
     @on.message(Substate("creation_state", TestCreation.subject))
@@ -195,7 +197,8 @@ class TestingScene(Scene, state="testing"):
         )
         time = get_test_time(test.time)
         if time == -1: return
-        timer(time_is_up, time, args=[query.from_user.id])
+        timer(time_is_up, time * 60, args=[query.from_user.id])
+        await update_user_activity(query.from_user.id)
 
         
     @on.message(Substate("substate", TestingState.taking_test))
@@ -228,11 +231,11 @@ class TestingScene(Scene, state="testing"):
         else:
             await message.answer("Не удалось сохранить результат")
 
+        await update_user_activity(user_id)
         user = await get_user(user_id) # is not None
         if not user["filled_form"]:
-            #TODO: ask for form fill
             await state.update_data(substate=TestingState.filling_form)
-            await message.answer("форму")
+            await message.answer("Поздравляю с прохождением первого теста!\nОставьте небольшой отзыв о работе бота🙏\nЭто поможет в его разработке")
         else:
             await self.wizard.exit()
         

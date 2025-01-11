@@ -6,6 +6,7 @@ from aiogram.fsm.scene import SceneRegistry
 from aiogram import Dispatcher 
 from aiogram.types import BotCommand, Message
 
+from notifications import notify_users
 from routers.test import DeletingTestScene, TestingScene
 from setup import bot, dispatcher, set_commands, llm_client
 from database.setup import create_tables
@@ -21,6 +22,7 @@ from routers import (
     StartScene,
     TrainingScene
 )
+from timer import background_task
 
 def register(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(general_router)
@@ -62,6 +64,7 @@ async def on_startup():
 
 async def main() -> None:
     dispatcher.startup.register(on_startup)
+    background_task(notify_users, 60)
     await dispatcher.start_polling(bot)
 
 
