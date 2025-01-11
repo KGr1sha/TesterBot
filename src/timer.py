@@ -1,18 +1,14 @@
-from threading import Timer
 import asyncio
 
-def call_async(function):
-    asyncio.run(function)
+async def background_task():
+    while True:
+        print("task is running")
+        await asyncio.sleep(1)
 
-def call(function, delay) -> Timer:
-    t = Timer(delay, call_async, args=(function,))
-    t.run()
-    return t
+async def exec_after_delay(callback, delay):
+    await asyncio.sleep(delay)
+    await callback
 
-async def async_function():
-    await asyncio.sleep(1)
-    print("done")
-
-if __name__ == "__main__":
-    call(async_function(), 3)
+def timer(callback, delay):
+    asyncio.create_task(exec_after_delay(callback, delay))
 

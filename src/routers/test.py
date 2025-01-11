@@ -28,6 +28,7 @@ from keyboards import (
     time_keyboard,
     difficulty_keyboard
 )
+from timer import timer
 
 test_router = Router()
 
@@ -145,7 +146,7 @@ async def save_score(response: str, user_id: int, test_id: int) -> bool:
 
 
 async def time_is_up(user_id: int):
-    await bot.send_message(user_id, "time is up")
+    await bot.send_message(user_id, "Время вышло!")
 
 
 class TestingScene(Scene, state="testing"):
@@ -179,6 +180,7 @@ class TestingScene(Scene, state="testing"):
             "У вас есть возможность досрочно завершить тест, не ответив на все вопросы.",
             reply_markup=testing_keyboard()
         )
+        timer(time_is_up(query.from_user.id), 5)
 
         
     @on.message(Substate("substate", TestingState.taking_test))
