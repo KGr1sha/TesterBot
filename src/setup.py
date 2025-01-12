@@ -1,15 +1,12 @@
 from os import getenv
-
 from dotenv import load_dotenv
-import asyncio
 
 from aiogram import Bot, Dispatcher 
 from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
 from aiogram.types import  BotCommandScopeAllPrivateChats, BotCommandScopeDefault,  BotCommand
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 
-from llm import Gemini
+from llm import Gemini, Gigachat
 
 def get_bot_token() -> str:
     load_dotenv()

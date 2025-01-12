@@ -4,7 +4,7 @@ import sys
 
 from aiogram.fsm.scene import SceneRegistry 
 from aiogram import Dispatcher 
-from aiogram.types import BotCommand, Message
+from aiogram.types import BotCommand 
 
 from notifications import notify_users
 from routers.test import DeletingTestScene, TestingScene
@@ -64,7 +64,7 @@ async def on_startup():
 
 async def main() -> None:
     dispatcher.startup.register(on_startup)
-    background_task(notify_users, 60)
+    background_task(notify_users, 60 * 5)
     await dispatcher.start_polling(bot)
 
 

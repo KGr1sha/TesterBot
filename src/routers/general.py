@@ -37,10 +37,9 @@ async def list_users(message: Message) -> None:
     if not users:
         await message.answer("Нет зарегестрированных пользователей")
         return None
-    await notify_users()
     response = ""
     for user in users:
-        response += str(user) + "\n"
+        response += str(user) + "\n" + str(user.last_activity)
     await message.answer(response)
 
 

@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta, timezone, time, tzinfo
-from database.models import User
-from database.operations import get_users
+from datetime import datetime, timedelta, timezone, time 
+from database.operations import get_users, update_user_activity
 from setup import bot
 
 notification_message = """Вы давно не тренировались
@@ -18,5 +17,6 @@ async def notify_users():
     users = await get_users()
     for user in users:
         diff = datetime.now(timezone.utc) - user.last_activity.replace(tzinfo=timezone.utc)
-        if diff > timedelta(minutes=1):
+        if diff > timedelta(hours=24):
             await bot.send_message(user.id, notification_message)
+            await update_user_activity(user.id) # so that notifications are sent once a day

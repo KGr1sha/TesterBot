@@ -7,8 +7,8 @@ from aiogram.types import (
 )
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
-from annotated_types import IsDigit
 
+from proompts import get_proompt
 from states import TestCreation, Substate, TestingState
 from database.operations import (
     add_test,
@@ -30,11 +30,12 @@ from keyboards import (
     time_keyboard,
     difficulty_keyboard
 )
-from timer import timer, background_task
+from timer import timer 
 
 test_router = Router()
 
 message_history = {}
+timers = {}
 
 
 class CreateTestScene(Scene, state="create_test"):
@@ -161,7 +162,13 @@ def get_test_time(time_str: str) -> int:
     return int(int_str)
 
 async def time_is_up(user_id: int):
+    proompt = get_proompt("time_is_up")
+    response = await llm_client.use(
+        history=message_history[user_id],
+        proompt=proompt
+    )
     await bot.send_message(user_id, "Время вышло!")
+    await bot.send_message(user_id, response)
 
 
 class TestingScene(Scene, state="testing"):
@@ -197,7 +204,8 @@ class TestingScene(Scene, state="testing"):
         )
         time = get_test_time(test.time)
         if time == -1: return
-        timer(time_is_up, time * 60, args=[query.from_user.id])
+        task = timer(time_is_up, time * 60, args=[query.from_user.id])
+        timers[query.from_user.id] = task
         await update_user_activity(query.from_user.id)
 
         
@@ -231,7 +239,12 @@ class TestingScene(Scene, state="testing"):
         else:
             await message.answer("Не удалось сохранить результат")
 
+        task = timers[user_id]
+        if not task.done():
+            task.cancel()
+
         await update_user_activity(user_id)
+
         user = await get_user(user_id) # is not None
         if not user["filled_form"]:
             await state.update_data(substate=TestingState.filling_form)
