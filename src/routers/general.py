@@ -53,7 +53,11 @@ async def show_stats(message: Message) -> None:
         return
     total = user["total_answers"]
     right = user["right_answers"]
-    await message.answer(f"""Правильных ответов: {right}\nВсего ответов: {total}\nПроцент правильных ответов: {"{0:.2f}".format(float(right)/total * 100)}%""")
+    if total != 0:
+        percent = float(right)/total * 100
+    else:
+        percent = 0
+    await message.answer(f"""Правильных ответов: {right}\nВсего ответов: {total}\nПроцент правильных ответов: {"{0:.2f}".format(percent)}%""")
 
 
 @general_router.message(Command("take_test"))
