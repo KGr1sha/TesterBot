@@ -13,11 +13,9 @@ from database.setup import create_tables
 from routers import (
     general_router,
     start_router,
-    chat_router,
     test_router,
     train_router,
     fallback_router,
-    ChatScene,
     CreateTestScene,
     StartScene,
     TrainingScene
@@ -27,14 +25,12 @@ from timer import background_task
 def register(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(general_router)
     dispatcher.include_router(start_router)
-    dispatcher.include_router(chat_router)
     dispatcher.include_router(test_router)
     dispatcher.include_router(train_router)
     dispatcher.include_router(fallback_router)
 
     scene_registry = SceneRegistry(dispatcher)
     scene_registry.add(StartScene, router=start_router)
-    scene_registry.add(ChatScene, router=chat_router)
     scene_registry.add(CreateTestScene, router=test_router)
     scene_registry.add(TestingScene, router=test_router)
     scene_registry.add(DeletingTestScene, router=test_router)
@@ -49,9 +45,7 @@ async def on_startup():
         BotCommand(command="take_test", description="Пройти тест"),
         BotCommand(command="train", description="Режим тренировки"),
         BotCommand(command="stats", description="Статистика"),
-        BotCommand(command="chat", description="Режим чата с LLM"),
         BotCommand(command="help", description="Помощь"),
-        BotCommand(command="users", description="Список пользователей"),
     ]
 
     register(dispatcher)

@@ -1,6 +1,33 @@
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import ReplyKeyboardMarkup
 
+
+def answers_keyboard(answers: list[str]):
+    builder = ReplyKeyboardBuilder()
+    for a in answers:
+        builder.button(text=a)
+    builder.adjust(1, True)
+    return builder.as_markup(resize_keyboard=True)
+
+
+def truefalse_keyboard():
+    builder = ReplyKeyboardBuilder()
+    builder.button(text="Верно")
+    builder.button(text="Неверно")
+    builder.adjust(1, True)
+    return builder.as_markup(resize_keyboard=True)
+
+
+def education_keyboard() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+    builder.button(text="Основное общее (9 класс)")
+    builder.button(text="Среднее общее (11 класс)")
+    builder.button(text="Среднее профессиональное")
+    builder.button(text="Высшее")
+    builder.adjust(1, True)
+    return builder.as_markup(resize_keyboard=True)
+
+
 def number_of_questions_keyboard() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
     builder.button(text="3")
@@ -46,7 +73,3 @@ def train_keyboard() -> ReplyKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True)
 
 
-def testing_keyboard() -> ReplyKeyboardMarkup:
-    builder = ReplyKeyboardBuilder()
-    builder.button(text="Завершить тест")
-    return builder.as_markup(resize_keyboard=True)

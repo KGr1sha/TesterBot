@@ -1,20 +1,41 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup
 from aiogram.fsm.scene import Scene, on
 from aiogram.fsm.context import FSMContext
 
 from states import Substate, TrainingState 
-from database.models import TrainingData
-from database.operations import update_user_activity
+from database.models import TrainingData 
+from database.operations import  update_user_activity
 from proomptgen import ProomptGenerator
-from setup import llm_client
-from keyboards import difficulty_keyboard, question_type_keyboard, train_keyboard
+from setup import llm_client, bot
+from keyboards import(
+    difficulty_keyboard,
+    question_type_keyboard,
+    train_keyboard,
+    truefalse_keyboard,
+    answers_keyboard
+)
+from parser import parse_answers
 
 train_router = Router()
 
 message_history = {}
 
+async def ask_question(user_id: int, question: str, question_type: str):
+    markup: ReplyKeyboardMarkup|ReplyKeyboardRemove
+    
+    if question_type == "С выбором вариантов ответа":
+        markup = answers_keyboard(parse_answers(question))
+    elif question_type == "Верно/неверно":
+        markup = truefalse_keyboard()
+    else:
+        markup = ReplyKeyboardRemove()
+    await bot.send_message(
+        user_id,
+        question,
+        reply_markup=markup
+    )
 
 class TrainingScene(Scene, state="training"):
     @on.message.enter()
@@ -52,7 +73,7 @@ class TrainingScene(Scene, state="training"):
         if not message.from_user: return
 
         await state.update_data(difficulty=message.text)
-        await state.update_data(trainstate=TrainingState.training)
+        await state.update_data(trainstate=TrainingState.chatting)
         data = await state.get_data()
         t = TrainingData(
             subject=data["subject"],
@@ -69,11 +90,35 @@ class TrainingScene(Scene, state="training"):
             proompt=generator.train(t)
         )
 
-        await message.answer(response, reply_markup=train_keyboard())
+        await ask_question(id, response, t.question_type) 
+        await state.update_data(trainstate=TrainingState.scoring)
 
 
-    @on.message(Substate("trainstate", TrainingState.training))
-    async def handle_take_state(self, message: Message) -> None:
+    # chatting state, if asked for next question, we go to scoring state
+    @on.message(Substate("trainstate", TrainingState.chatting))
+    async def handle_chat(self, message: Message, state: FSMContext) -> None:
+        print("chatting")
+        if not message.from_user or not message.text: return
+
+        id = message.from_user.id 
+        response = await llm_client.use(
+            history=message_history[id],
+            proompt=message.text
+        )
+        qtype = (await state.get_data())["qtype"]
+        await update_user_activity(message.from_user.id)
+
+        if "Следующий вопрос" in message.text or "следующий вопрос" in message.text:
+            await ask_question(id, response, qtype) 
+            await state.update_data(trainstate=TrainingState.scoring)
+        else:
+            await message.answer(response, reply_markup=train_keyboard())
+
+
+    # the next message will be treated as an answer to the question
+    @on.message(Substate("trainstate", TrainingState.scoring))
+    async def score(self, message: Message, state: FSMContext):
+        print("scoring")
         if not message.from_user or not message.text: return
 
         id = message.from_user.id 
@@ -82,7 +127,7 @@ class TrainingScene(Scene, state="training"):
             proompt=message.text
         )
         await message.answer(response, reply_markup=train_keyboard())
-        await update_user_activity(message.from_user.id)
+        await state.update_data(trainstate=TrainingState.chatting)
 
 
     @on.message(F.text == "Закончить тренировку")

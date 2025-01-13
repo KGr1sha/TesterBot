@@ -14,13 +14,15 @@ class TrainingState(StatesGroup):
     theme = State()
     question_type = State()
     difficulty = State()
-    training = State()
+    chatting = State()
+    scoring = State()
 
 
 class TestingState(StatesGroup):
     selecting_delete = State()
     selecting_take = State()
     taking_test = State()
+    scoring = State()
     filling_form = State()
 
 

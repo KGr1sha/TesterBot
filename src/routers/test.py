@@ -1,8 +1,10 @@
 from aiogram import Router, F
+from aiogram.enums import content_type
 from aiogram.filters import Command
 from aiogram.types import (
     Message,
     CallbackQuery,
+    ReplyKeyboardMarkup,
     ReplyKeyboardRemove
 )
 from aiogram.fsm.scene import Scene, on
@@ -12,25 +14,25 @@ from proompts import get_proompt
 from states import TestCreation, Substate, TestingState
 from database.operations import (
     add_test,
-    add_user_statistics,
     delete_test,
     get_test,
     get_user,
-    update_test_score,
     update_user_activity,
     update_user_form,
 )
-from database.models import TestData
+from database.models import TestData, Test
 from proomptgen import ProomptGenerator
 from setup import bot, llm_client 
 from keyboards import (
+    answers_keyboard,
     question_type_keyboard,
     number_of_questions_keyboard,
-    testing_keyboard,
     time_keyboard,
-    difficulty_keyboard
+    difficulty_keyboard,
+    truefalse_keyboard
 )
 from timer import timer 
+from parser import get_test_time, parse_answers, parse_questions, save_score
 
 test_router = Router()
 
@@ -120,47 +122,6 @@ class CreateTestScene(Scene, state="create_test"):
         await state.clear()
 
 
-
-async def save_score(response: str, user_id: int, test_id: int) -> bool:
-    if sum([x in response for x in "[/]"]) != 3: return False
-
-    # finding [ and ] from the end of the message
-    pos1 = 0
-    pos2 = 0
-    sep = 0
-    for i in range(len(response) - 1, -1, -1):
-        if response[i] == ']':
-            pos2 = i
-        elif response[i] == '/':
-            sep = i
-        elif response[i] == '[':
-            pos1 = i
-            break
-
-    right = int(response[pos1 + 1:sep])
-    total = int(response[sep + 1:pos2])
-
-    await update_test_score(test_id, f"{right}/{total}")
-    user = await add_user_statistics(
-        user_id,
-        right,
-        total
-    )
-    return user != None;
-
-
-def get_test_time(time_str: str) -> int:
-    int_str = ""
-    i = 0
-    while i < len(time_str) and not time_str[i].isdigit():
-        i += 1
-    if i == len(time_str): return -1
-    while i < len(time_str) and time_str[i].isdigit():
-        int_str += time_str[i]
-        i += 1
-
-    return int(int_str)
-
 async def time_is_up(user_id: int):
     proompt = get_proompt("time_is_up")
     response = await llm_client.use(
@@ -171,10 +132,65 @@ async def time_is_up(user_id: int):
     await bot.send_message(user_id, response)
 
 
+async def score_test(message: Message, state: FSMContext, scene: Scene):
+    if not message.from_user or not message.text: return
+
+    user_id = message.from_user.id
+    test_id = int((await state.get_data())["test_id"])
+
+    answers = (await state.get_data())["answers"]
+    test = await get_test(test_id)
+    if not test:
+        raise Exception("paranormal behaviour")
+    test_content = test.content_text
+    proompt = ProomptGenerator().take_test(test_content, answers)
+
+    response = await llm_client.use(
+        history=[],
+        proompt=proompt
+    )
+
+    await message.answer(response, reply_markup=ReplyKeyboardRemove())
+    if not await save_score(response, user_id, test_id):
+        await message.answer("Не удалось сохранить результат")
+
+    task = timers[user_id]
+    if not task.done():
+        task.cancel()
+
+    await update_user_activity(user_id)
+
+    user = await get_user(user_id) # is not None
+    if not user:
+        raise Exception("Wow, something wierd happened, user can't be null here")
+    if not user["filled_form"]:
+        await state.update_data(substate=TestingState.filling_form)
+        await message.answer("Поздравляю с прохождением первого теста!\nОставьте небольшой отзыв о работе бота🙏\nЭто поможет в его разработке")
+    else:
+        await scene.wizard.exit()
+
+async def ask_question(user_id: int, test: Test, question_index: int):
+    questions = parse_questions(test.content_text)
+    question = questions[question_index]
+    markup: ReplyKeyboardMarkup|ReplyKeyboardRemove
+    
+    if test.question_type == "С выбором вариантов ответа":
+        markup = answers_keyboard(parse_answers(question))
+    elif test.question_type == "Верно/неверно":
+        markup = truefalse_keyboard()
+    else:
+        markup = ReplyKeyboardRemove()
+    await bot.send_message(
+        user_id,
+        question,
+        reply_markup=markup
+    )
+
 class TestingScene(Scene, state="testing"):
     @on.callback_query.enter()
     async def on_enter(self, query: CallbackQuery, state: FSMContext) -> None:
         if not query.data or not query.from_user: return
+        user_id = query.from_user.id
         test_id = int(query.data)
         await state.update_data(test_id=test_id)
         test = await get_test(test_id)
@@ -183,75 +199,41 @@ class TestingScene(Scene, state="testing"):
             return
         await query.message.edit_text("⌛️")
 
-        generator = ProomptGenerator()
-
-        message_history[query.from_user.id] = list()
-
-        proompt = generator.take_test(test.content_text)
-        response = await llm_client.use(
-            history=message_history[query.from_user.id],
-            proompt=proompt
-        )
-
-        await query.message.edit_text(test.content_text)
-        await bot.send_message(query.from_user.id, response)
+        await state.update_data(test=test)
+        await state.update_data(question_number=0)
         await state.update_data(substate=TestingState.taking_test)
+        await state.update_data(answers=list())
 
-        await bot.send_message(
-            query.from_user.id,
-            "У вас есть возможность досрочно завершить тест, не ответив на все вопросы.",
-            reply_markup=testing_keyboard()
-        )
+        await query.message.delete()
+        await ask_question(user_id, test, 0)
+
         time = get_test_time(test.time)
         if time == -1: return
-        task = timer(time_is_up, time * 60, args=[query.from_user.id])
-        timers[query.from_user.id] = task
-        await update_user_activity(query.from_user.id)
+        task = timer(time_is_up, time * 60, args=[user_id])
+        timers[user_id] = task
+        await update_user_activity(user_id)
 
         
     @on.message(Substate("substate", TestingState.taking_test))
-    async def handle_take_state(self, message: Message) -> None:
+    async def handle_take_state(self, message: Message, state: FSMContext) -> None:
         if not message.from_user or not message.text: return
-
-        response = await llm_client.use(
-            history=message_history[message.from_user.id],
-            proompt=message.text
-        )
-        await message.answer(response)
-        await message.answer("Напишите \"Завершить тест\" для проверки и сохранения результата!")
-
-
-    @on.message(F.text == "Завершить тест")
-    async def handle_end_test(self, message: Message, state: FSMContext) -> None:
-        if not message.from_user or not message.text: return
-
-        response = await llm_client.use(
-            history=message_history[message.from_user.id],
-            proompt=message.text
-        )
-        await message.answer(response, reply_markup=ReplyKeyboardRemove())
-
-        user_id = message.from_user.id
-        test_id = int((await state.get_data())["test_id"])
-        saved = await save_score(response, user_id, test_id)
-        if saved:
-            await message.answer("Результат сохранен!")
+        d = await state.get_data()
+        test: Test   = d["test"]
+        question_num = d["question_number"] + 1
+        answers      = d["answers"]
+        answers.append(f"{question_num}: {message.text}")
+        if question_num < len(parse_questions(test.content_text)):
+            await ask_question(message.from_user.id, test, question_num)
+            await state.update_data(question_number=question_num)
         else:
-            await message.answer("Не удалось сохранить результат")
+            await message.answer(
+                "Вопросы кончились, перейдем к результатам...",
+                reply_markup=ReplyKeyboardRemove()
+            )
+            hourglass = await message.answer("⌛️")
+            await score_test(message, state, self)
+            await hourglass.delete()
 
-        task = timers[user_id]
-        if not task.done():
-            task.cancel()
-
-        await update_user_activity(user_id)
-
-        user = await get_user(user_id) # is not None
-        if not user["filled_form"]:
-            await state.update_data(substate=TestingState.filling_form)
-            await message.answer("Поздравляю с прохождением первого теста!\nОставьте небольшой отзыв о работе бота🙏\nЭто поможет в его разработке")
-        else:
-            await self.wizard.exit()
-        
 
     @on.message(Substate("substate", TestingState.filling_form))
     async def fill_form(self, message: Message) -> None:

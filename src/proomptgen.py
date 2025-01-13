@@ -13,9 +13,10 @@ class ProomptGenerator():
         )
 
 
-    def take_test(self, test_text: str) -> str:
+    def take_test(self, test_text: str, answers: list[str]) -> str:
         return get_proompt("take_test").format(
-            test_content=test_text
+            test_content=test_text,
+            answers = "\n".join(answers)
         )
 
     

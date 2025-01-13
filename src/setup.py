@@ -6,7 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.types import  BotCommandScopeAllPrivateChats, BotCommandScopeDefault,  BotCommand
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 
-from llm import Gemini, Gigachat
+from llm import Gemini, Gigachat, ChatGPT
 
 def get_bot_token() -> str:
     load_dotenv()
@@ -22,5 +22,6 @@ dispatcher = Dispatcher(
 )
 llm_client = Gemini()
 
-async def set_commands(commands: list[BotCommand]) -> bool:
-    return await bot.set_my_commands(commands, BotCommandScopeAllPrivateChats())
+async def set_commands(commands: list[BotCommand]) -> None:
+    await bot.set_my_commands(commands, BotCommandScopeAllPrivateChats())
+    await bot.set_my_commands(commands, BotCommandScopeDefault())

@@ -7,7 +7,6 @@ from aiogram.fsm.context import FSMContext
 from database.models import TestData
 from database.operations import get_user, get_users, get_tests
 from states import TestingState
-from notifications import notify_users
 
 general_router = Router()
 

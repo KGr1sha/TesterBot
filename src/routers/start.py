@@ -1,11 +1,12 @@
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.scene import Scene, on
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 
 from states import Substate, UserForm
 from database.operations import set_user, get_user
+from keyboards import education_keyboard
 
 start_router = Router()
 
@@ -30,7 +31,10 @@ class StartScene(Scene, state="start"):
     async def process_name(self, message: Message, state: FSMContext) -> None:
         await state.update_data(name=message.text)
         await state.update_data(step=UserForm.education)
-        await message.answer("2. Какой у тебя уровень образования?")
+        await message.answer(
+            "2. Какой у тебя уровень образования?",
+            reply_markup=education_keyboard()
+        )
 
     @on.message(Substate("step", UserForm.education))
     async def process_education(self, message: Message, state: FSMContext) -> None:
@@ -43,7 +47,8 @@ class StartScene(Scene, state="start"):
                 education=data["education"]
             )
         await message.answer(
-            "Отлично! Можем переходить к генерации тестов!\nПопробуйте /create_test для создания нового теста"
+            "Отлично! Можем переходить к генерации тестов!\nПопробуйте /create_test для создания нового теста",
+            reply_markup=ReplyKeyboardRemove()
         )
         await self.wizard.back()
 
