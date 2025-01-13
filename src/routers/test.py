@@ -123,13 +123,7 @@ class CreateTestScene(Scene, state="create_test"):
 
 
 async def time_is_up(user_id: int):
-    proompt = get_proompt("time_is_up")
-    response = await llm_client.use(
-        history=message_history[user_id],
-        proompt=proompt
-    )
-    await bot.send_message(user_id, "Время вышло!")
-    await bot.send_message(user_id, response)
+    await bot.send_message(user_id, "Время вышло!\nДо свидания")
 
 
 async def score_test(message: Message, state: FSMContext, scene: Scene):
@@ -168,6 +162,7 @@ async def score_test(message: Message, state: FSMContext, scene: Scene):
         await message.answer("Поздравляю с прохождением первого теста!\nОставьте небольшой отзыв о работе бота🙏\nЭто поможет в его разработке")
     else:
         await scene.wizard.exit()
+
 
 async def ask_question(user_id: int, test: Test, question_index: int):
     questions = parse_questions(test.content_text)

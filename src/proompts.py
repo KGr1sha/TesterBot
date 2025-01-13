@@ -30,7 +30,8 @@ test_proompts = {
     "take_test": """Твоя роль - проверяющий тестов.
 У меня есть условия теста и мои ответы на этот тест.
 Твоя задача - проверить правильность моих ответов,
-объяснить, где я ошибся и написать итоговую оценку в формате:
+объяснить, где я ошибся, какие были правильные ответы и почему.
+В конце твоего сообщения напиши итоговую оценку в формате:
 [<количество правильных ответов>/<количество вопросов>] (символы [] включай в сообщение, а символы <> включать не надо)
 
 Вот условия теста:
@@ -39,6 +40,22 @@ test_proompts = {
 Вот мои ответы:
 {answers}
 """,
+
+#    "take_test": """Your role is a test checker.
+#I have the test conditions and my answers to this test.
+#Your task is to check the correctness of my answers,
+#an explanation of where I went wrong, what the correct answers were and why.
+#At the end of the message, you write the final grade in the format:
+#[<number of correct answers>/<number of questions>] (include the [] symbols in the message, but do not include the <> symbols)
+#
+#Here are the test conditions:
+#{test_content}
+#
+#Here are my answers:
+#{answers}
+#
+#Answer in russian, this is important.
+#""",
     "time_is_up": """Завершить тест""",
 
     "train": """Мне нужно проверить свои знания.
