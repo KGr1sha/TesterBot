@@ -236,6 +236,7 @@ class TestingScene(Scene, state="testing"):
         user_id = message.from_user.id
         await update_user_form(user_id, message.text)
         await message.answer("Спасибо")
+        await self.wizard.exit()
 
 
 
