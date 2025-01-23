@@ -1,0 +1,3 @@
+id,username,education,last_activity,total_answers,right_answers,filled_form,form_text,created_at,updated_at
+773123917,mnchk,"Среднее профессиональное","2025-01-23 07:07:39",0,0,0,,"2025-01-13 15:23:14","2025-01-23 07:07:39"
+644634331,grisha,"Среднее общее (11 класс)","2025-01-23 07:17:30",5,3,1,/train,"2025-01-23 07:16:47","2025-01-23 07:17:51"

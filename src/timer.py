@@ -1,6 +1,5 @@
 import asyncio
 
-
 async def exec_after_delay(callback, delay, args=[]):
     await asyncio.sleep(delay)
     await callback(*args)

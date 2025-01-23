@@ -3,6 +3,7 @@ from aiogram.types import Message
 from aiogram.enums import ParseMode
 
 from setup import llm_client
+max_history_size = 30
 history = {}
 fallback_router = Router()
 

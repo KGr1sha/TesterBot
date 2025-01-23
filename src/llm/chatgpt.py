@@ -41,6 +41,15 @@ async def main() -> None:
     )
     print(response)
 
-
+from openai import OpenAI
 if __name__ == '__main__':
-    asyncio.run(main())
+    load_dotenv()
+    client = OpenAI()
+    completion = client.chat.completions.create(
+        model="chatgpt-4o-latest",
+        store=True,
+        messages=[
+            {"role": "user", "content": "write a haiku about ai"}
+        ]
+    )
+    print(completion.choices[0].message)

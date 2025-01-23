@@ -61,12 +61,22 @@ async def show_stats(message: Message) -> None:
 
 @general_router.message(Command("take_test"))
 async def handle_tests(message: Message, state: FSMContext) -> None:
+    if not message.from_user: return
+    user = await get_user(message.from_user.id)
+    if not user:
+        await message.answer("Вы не зарегестрировались, напишите /start")
+        return
     await list_tests(message)
     await state.set_state(TestingState.selecting_take)
 
 
 @general_router.message(Command("delete_test"))
 async def handle_delete_tests(message: Message, state: FSMContext) -> None:
+    if not message.from_user: return
+    user = await get_user(message.from_user.id)
+    if not user:
+        await message.answer("Вы не зарегестрировались, напишите /start")
+        return
     await list_tests(message)
     await state.set_state(TestingState.selecting_delete)
 
